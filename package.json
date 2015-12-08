@@ -1,0 +1,46 @@
+{
+  "name": "SplitPlayer",
+  "author": "Holger Schauf",
+  "website": "http://www.splitplay.tv",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": "4.1.0"
+  },
+  "description": "SplitPlayer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fluse/splitplayer"
+  },
+  "license": "private",
+  "dependencies": {
+    "grunt": "^0.4.5",
+    "grunt-babel": "^5.0.1",
+    "grunt-banner": "^0.4.0",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-uglify": "^0.6.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-string-replace": "^1.2.0",
+    "jquery": "^2.1.4",
+    "load-grunt-tasks": "^3.3.0"
+  },
+  "scripts": {
+    "prestart": "npm install && grunt deploy",
+    "start": "node server.js",
+    "test": "mocha",
+    "dev": "nodemon",
+    "watch": "grunt watch"
+  },
+  "main": "server.js",
+  "devDependencies": {
+    "grunt-notify": "^0.4.3"
+  },
+  "providedServices": {
+    "linter": {
+      "versions": {
+        "1.0.0": "provideLinter"
+      }
+    }
+  }
+}

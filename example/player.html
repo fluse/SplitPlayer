@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <title>SplitPlayer Example</title>
+    </head>
+
+    <body>
+
+
+        <div id="videoPlayer">
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+        <script src="../dist/splitplayer.js"></script>
+
+        <script>
+
+            var videos = [{
+                videoId: 'AxbqLXByD2U',
+                startSeconds: 0,
+                isMuted: false
+            }, {
+                videoId: 'QfrUodC2pbg',
+                startSeconds: 0,
+                isMuted: false
+            }];
+
+            new SplitPlayer({
+                area: '#area',
+                videos: videos
+            });
+        </script>
+    </body>
+
+</html>
