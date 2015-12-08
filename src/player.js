@@ -9,6 +9,7 @@ const ready = 2;
 const buffering = 3;
 const playing = 4;
 const pause = 5;
+const stop = 6;
 
 var SplitPlayer = function (settings) {
     debugger;
@@ -72,7 +73,10 @@ SplitPlayer.prototype = {
         this.playerStateIs = loading;
     },
 
-    extend(Plugin) {
+    /*
+     * Register Plugin
+     */
+    register(Plugin) {
         this.plugins.push(new Plugin(this));
     },
 
@@ -115,6 +119,22 @@ SplitPlayer.prototype = {
         // hook onReady for plugins
         for (let Plugin of this.plugins) {
             Plugin.onReady();
+        }
+    },
+
+    changeState(state) {
+        this.playerStateIs = state;
+
+        if (this.playerStateIs === playing) {
+            return this.play();
+        }
+
+        if (this.playerStateIs === pause) {
+            return this.pause();
+        }
+
+        if (this.playerStateIs === buffering) {
+            return this.pause();
         }
     },
 
