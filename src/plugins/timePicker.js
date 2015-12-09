@@ -2,13 +2,10 @@
 
 'use strict';
 
-var SplitPlayerTimePicker = function (player, settings) {
-    this.player = player;
-    this.playedTime = 0;
-    this.cycler = 0;
-    this.paused = true;
-    this.timeLine = null;
-    return this;
+var SplitPlayerTimePicker = function (timeline) {
+
+    this.timeline = timeline;
+
     this.settings = $.extend({
         element: null,
         currentTimeElement: null,
@@ -30,35 +27,11 @@ var SplitPlayerTimePicker = function (player, settings) {
 
 SplitPlayerTimePicker.prototype = {
 
-    onReady() {
-
-    },
-
-    onPlay() {
-        return console.log('plugin on play');
-        this.paused = false;
-        this.run();
-    },
-
-    onPause() {
-        return console.log('plugin on pause');
-        this.paused = true;
-        clearTimeout(this.cycler);
-    },
-
-    onStop() {
-        return console.log('plugin on stop');
-        this.playedTime = 0;
-        this.update();
-    },
-
     setEvents() {
         var self = this;
 
         this.timeLine = $(this.settings.element);
-        this.timeLine.attr('max', this.settings.duration).rangeslider({
-            polyfill: false
-        });
+
 
         $('.rangeslider').on('mousedown', function () {
             self.player.timeTo(self.playedTime);
@@ -77,26 +50,6 @@ SplitPlayerTimePicker.prototype = {
             self.settings.onChange(val);
         });
     },
-
-    run() {
-        // pause
-        if (this.playedTime >= this.settings.duration || this.paused) {
-            return this.pause();
-        }
-
-        this.playedTime++;
-        this.update();
-
-        clearTimeout(this.cycler);
-        this.cycler = setTimeout(this.run.bind(this), 1000);
-    },
-
-    update() {
-        this.timeLine.val(this.playedTime).change();
-
-        $(this.settings.currentTimeElement).html(this.formatTime(this.playedTime));
-    },
-
     formatTime(time) {
         var minutes = Math.floor(time / 60);
         var seconds = Math.round(time - minutes * 60);

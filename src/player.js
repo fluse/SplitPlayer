@@ -27,6 +27,9 @@ var SplitPlayer = function (settings) {
     // global player state
     this.playerStateIs = playerState.inactive;
 
+    // ticker for onUpdate interval
+    this.ticker = null;
+
     // dependencie loading status
     this.dependenciesLoaded = false;
 
@@ -52,7 +55,9 @@ SplitPlayer.prototype = {
      * add Plugins
      */
     addPlugin (Plugin) {
-        this.plugins.push(new Plugin(this));
+        var instance = new Plugin(this);
+        this.plugins.push(instance);
+        return instance;
     },
 
     /*
@@ -125,14 +130,21 @@ SplitPlayer.prototype = {
             return console.info('videos not ready yet');
         }
 
-        console.info('player and videos ready');
-
         this.playerStateIs = playerState.ready;
 
         // hook onReady for plugins
         for (let Plugin of this.plugins) {
             if (Plugin.onReady) {
                 Plugin.onReady();
+            }
+        }
+    },
+
+    onUpdate() {
+        // hook all plugins
+        for (let Plugin of this.plugins) {
+            if (Plugin.onUpdate) {
+                Plugin.onUpdate();
             }
         }
     },
@@ -173,6 +185,9 @@ SplitPlayer.prototype = {
             return console.info('allready playing');
         }
 
+        // start ticker
+        this.ticker = window.setInterval(this.onUpdate.bind(this), 200);
+
         for (let video of this.videos) {
             video.play();
         }
@@ -205,6 +220,9 @@ SplitPlayer.prototype = {
             video.pause();
         }
 
+        // stop ticker
+        clearInterval(this.ticker);
+
         // hook all plugins
         for (let Plugin of this.plugins) {
             if (Plugin.onPause) {
@@ -232,6 +250,9 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.stop();
         }
+
+        // stop ticker
+        clearInterval(this.ticker);
 
         // hook all plugins
         for (let Plugin of this.plugins) {
