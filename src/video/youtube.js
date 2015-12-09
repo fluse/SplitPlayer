@@ -108,7 +108,12 @@ SplitPlayerVideo.youtube.prototype = {
 
         if (this.player.duration < duration) {
             this.player.duration = duration;
+            this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
+    },
+
+    getPlayedTime() {
+        return this.videoPlayer.getCurrentTime() - this.settings.video.startSeconds;
     },
 
     render() {

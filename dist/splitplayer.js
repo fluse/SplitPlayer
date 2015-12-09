@@ -34,7 +34,7 @@ var SplitPlayer = function SplitPlayer(settings) {
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 3
+        maxVideos: 4
     }, settings);
 
     this.loadVideoDependencies();
@@ -43,6 +43,10 @@ var SplitPlayer = function SplitPlayer(settings) {
 };
 
 SplitPlayer.prototype = {
+
+    getPlayedTime: function getPlayedTime() {
+        return 0;
+    },
 
     /*
      * add Plugins
@@ -554,22 +558,39 @@ SplitPlayerTimePicker.prototype = {
 
 'use strict';
 
-var SplitPlayerTimeline = function SplitPlayerTimeline(player, settings) {
+var SplitPlayerTimeline = function SplitPlayerTimeline(player) {
+    this.player = player;
+    this.cycler = null;
     return this;
 };
 
 SplitPlayerTimeline.prototype = {
 
+    onReady: function onReady() {
+        this.render();
+    },
+
     onPlay: function onPlay() {
+        this.cycler = window.setInterval(this.getTime.bind(this), 50);
+
         return console.log('plugin on play');
     },
 
     onPause: function onPause() {
+        clearInterval(this.cycler);
         return console.log('plugin on pause');
     },
 
     onStop: function onStop() {
         return console.log('plugin on stop');
+    },
+
+    getTime: function getTime() {
+        console.log(this.player.getPlayedTime() * 100 / this.player.duration);
+    },
+
+    render: function render() {
+        $(this.player.settings.area).append('<div id="timeline"><i></i></div>');
     }
 };
 
@@ -683,7 +704,12 @@ SplitPlayerVideo.youtube.prototype = {
 
         if (this.player.duration < duration) {
             this.player.duration = duration;
+            this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
+    },
+
+    getPlayedTime: function getPlayedTime() {
+        return this.videoPlayer.getCurrentTime() - this.settings.video.startSeconds;
     },
 
     render: function render() {

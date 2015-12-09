@@ -7,7 +7,14 @@
 
     <body>
 
-
+        <style>
+            #SplitPlayer {
+                display: flex;
+            }
+            #SplitPlayer * {
+                flex: 1;
+            }
+        </style>
         <div id="videoPlayer">
         </div>
 
@@ -26,6 +33,10 @@
                 isMuted: false
             }, {
                 videoId: 'QfrUodC2pbg',
+                startSeconds: 0,
+                isMuted: false
+            },  {
+                videoId: 'QfrUodC2dbg',
                 startSeconds: 0,
                 isMuted: false
             }, {

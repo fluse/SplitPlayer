@@ -34,7 +34,7 @@ var SplitPlayer = function (settings) {
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 3
+        maxVideos: 4
     }, settings) ;
 
     this.loadVideoDependencies();
@@ -43,6 +43,10 @@ var SplitPlayer = function (settings) {
 };
 
 SplitPlayer.prototype = {
+
+    getPlayedTime () {
+        return 0;
+    },
 
     /*
      * add Plugins
