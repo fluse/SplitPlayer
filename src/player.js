@@ -3,16 +3,20 @@
 'use strict';
 
 // player state constants
-const inactive = 0;
-const loading = 1;
-const ready = 2;
-const buffering = 3;
-const playing = 4;
-const pause = 5;
-const stop = 6;
+const playerState = {
+    unstarted: -1,
+    ended: 0,
+    playing: 1,
+    pause: 2,
+    buffering: 3,
+    loading: 6
+};
 
 var SplitPlayer = function (settings) {
-    debugger;
+
+    this.duration = 0;
+
+    this.readyCount = 0;
 
     // video instances container
     this.videos = [];
@@ -20,20 +24,17 @@ var SplitPlayer = function (settings) {
     // plugin instances container
     this.plugins = [];
 
-    // ready video count
-    this.readyCount = 0;
-
     // global player state
-    this.playerStateIs = inactive;
+    this.playerStateIs = playerState.inactive;
 
     // dependencie loading status
-    this.dependenciesLoaded = inactive;
+    this.dependenciesLoaded = false;
 
     this.settings = $.extend({
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 2
+        maxVideos: 3
     }, settings) ;
 
     this.loadVideoDependencies();
@@ -44,11 +45,16 @@ var SplitPlayer = function (settings) {
 SplitPlayer.prototype = {
 
     /*
+     * add Plugins
+     */
+    addPlugin (Plugin) {
+        this.plugins.push(new Plugin(this));
+    },
+
+    /*
      * Load Video Dependecnies like youtubeIframeApi
      */
     loadVideoDependencies() {
-
-        this.dependenciesLoaded = loading;
 
         SplitPlayerVideo[this.settings.hoster].load(
             this.onVideoDependeciesReady.bind(this)
@@ -61,7 +67,7 @@ SplitPlayer.prototype = {
      */
     onVideoDependeciesReady() {
 
-        this.dependenciesLoaded = ready;
+        this.dependenciesLoaded = true;
 
         this.render();
 
@@ -70,24 +76,21 @@ SplitPlayer.prototype = {
             this.addVideo(video);
         }
 
-        this.playerStateIs = loading;
-    },
+        this.playerStateIs = playerState.loading;
 
-    /*
-     * Register Plugin
-     */
-    register(Plugin) {
-        this.plugins.push(new Plugin(this));
+        console.info('api loaded');
     },
 
     addVideo(video) {
 
+        // max videos check
         if (this.videos.length >= this.settings.maxVideos) {
-            return false;
+            return console.info('video limit reached only %s allowed', this.settings.maxVideos);
         }
 
         this.videos.push(
-            new SplitPlayerVideo(this, {
+            // create hoster specific video instance
+            new SplitPlayerVideo[this.settings.hoster](this, {
                 video: video
             })
         );
@@ -106,42 +109,64 @@ SplitPlayer.prototype = {
         this.readyCount--;
     },
 
+    /*
+     * called after all video player ready initialized
+     */
     onReady() {
 
         this.readyCount++;
 
+        // prevent if not all videos ready
         if (this.readyCount !== this.videos.length) {
-            return false;
+            return console.info('videos not ready yet');
         }
 
-        this.playerStateIs = ready;
+        console.info('player and videos ready');
+
+        this.playerStateIs = playerState.ready;
 
         // hook onReady for plugins
         for (let Plugin of this.plugins) {
-            Plugin.onReady();
+            if (Plugin.onReady) {
+                Plugin.onReady();
+            }
         }
     },
 
     changeState(state) {
-        this.playerStateIs = state;
 
-        if (this.playerStateIs === playing) {
+        console.info('state changed to %s', state);
+
+        // prevent if not all videos ready
+        if (this.readyCount !== this.videos.length) {
+            return false;
+        }
+
+        if (state === playerState.buffering) {
+            return this.pause();
+        }
+
+        if (state === playerState.pause) {
+            return this.pause();
+        }
+
+        if (state === playerState.playing) {
             return this.play();
         }
 
-        if (this.playerStateIs === pause) {
-            return this.pause();
-        }
 
-        if (this.playerStateIs === buffering) {
-            return this.pause();
-        }
     },
 
     play() {
 
+        // prevent play if videos not ready
         if (this.readyCount !== this.videos.length) {
-            return false;
+            return console.info('play not ready yet');
+        }
+
+        // abort if is playing allready
+        if (this.playerStateIs === playerState.playing) {
+            return console.info('allready playing');
         }
 
         for (let video of this.videos) {
@@ -149,21 +174,26 @@ SplitPlayer.prototype = {
         }
 
         // hook onPlay for plugins
-        for (let plugin of this.plugins) {
-            plugin.onPlay();
+        for (let Plugin of this.plugins) {
+            if (Plugin.onPlay) {
+                Plugin.onPlay();
+            }
         }
+
+        this.playerStateIs = playerState.playing;
+
+        return console.info('playing');
     },
 
     pause() {
-
         // abort if not all videos ready
         if (this.readyCount !== this.videos.length) {
-            return false;
+            return console.log('pause not ready yet');
         }
 
         // abort if player not playing state
-        if (this.playerStateIs !== playing) {
-            return;
+        if (this.playerStateIs === playerState.pause) {
+            return console.log('allready pausing');
         }
 
         // pause all videos
@@ -172,12 +202,43 @@ SplitPlayer.prototype = {
         }
 
         // hook all plugins
-        for (let plugin of this.plugins) {
-            plugin.onPause();
+        for (let Plugin of this.plugins) {
+            if (Plugin.onPause) {
+                Plugin.onPause();
+            }
         }
 
-        // set pause state
-        this.playerStateIs = pause;
+        this.playerStateIs = playerState.pause;
+
+        return console.info('pause');
+    },
+
+    stop() {
+        // abort if not all videos ready
+        if (this.readyCount !== this.videos.length) {
+            return console.log('pause not ready yet');
+        }
+
+        // abort if player not playing state
+        if (this.playerStateIs === playerState.unstarted) {
+            return;
+        }
+
+        // pause all videos
+        for (let video of this.videos) {
+            video.stop();
+        }
+
+        // hook all plugins
+        for (let Plugin of this.plugins) {
+            if (Plugin.onStop) {
+                Plugin.onStop();
+            }
+        }
+
+        this.playerStateIs = playerState.unstarted;
+
+        return console.info('stopped');
     },
 
     timeTo(time) {
@@ -189,7 +250,6 @@ SplitPlayer.prototype = {
     },
 
     render() {
-
         if (this.settings.area === null) {
             return console.log('no html parent defined');
         }

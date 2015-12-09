@@ -3,15 +3,20 @@
 'use strict';
 
 // player state constants
-const inactive = 0;
-const loading = 1;
-const ready = 2;
-const buffering = 3;
-const playing = 4;
-const pause = 5;
+const playerState = {
+    unstarted: -1,
+    ended: 0,
+    playing: 1,
+    pause: 2,
+    buffering: 3,
+    loading: 6
+};
 
 var SplitPlayer = function (settings) {
-    debugger;
+
+    this.duration = 0;
+
+    this.readyCount = 0;
 
     // video instances container
     this.videos = [];
@@ -19,20 +24,17 @@ var SplitPlayer = function (settings) {
     // plugin instances container
     this.plugins = [];
 
-    // ready video count
-    this.readyCount = 0;
-
     // global player state
-    this.playerStateIs = inactive;
+    this.playerStateIs = playerState.inactive;
 
     // dependencie loading status
-    this.dependenciesLoaded = inactive;
+    this.dependenciesLoaded = false;
 
     this.settings = $.extend({
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 2
+        maxVideos: 3
     }, settings) ;
 
     this.loadVideoDependencies();
@@ -43,11 +45,16 @@ var SplitPlayer = function (settings) {
 SplitPlayer.prototype = {
 
     /*
+     * add Plugins
+     */
+    addPlugin (Plugin) {
+        this.plugins.push(new Plugin(this));
+    },
+
+    /*
      * Load Video Dependecnies like youtubeIframeApi
      */
     loadVideoDependencies() {
-
-        this.dependenciesLoaded = loading;
 
         SplitPlayerVideo[this.settings.hoster].load(
             this.onVideoDependeciesReady.bind(this)
@@ -60,7 +67,7 @@ SplitPlayer.prototype = {
      */
     onVideoDependeciesReady() {
 
-        this.dependenciesLoaded = ready;
+        this.dependenciesLoaded = true;
 
         this.render();
 
@@ -69,21 +76,21 @@ SplitPlayer.prototype = {
             this.addVideo(video);
         }
 
-        this.playerStateIs = loading;
-    },
+        this.playerStateIs = playerState.loading;
 
-    extend(Plugin) {
-        this.plugins.push(new Plugin(this));
+        console.info('api loaded');
     },
 
     addVideo(video) {
 
+        // max videos check
         if (this.videos.length >= this.settings.maxVideos) {
-            return false;
+            return console.info('video limit reached only %s allowed', this.settings.maxVideos);
         }
 
         this.videos.push(
-            new SplitPlayerVideo(this, {
+            // create hoster specific video instance
+            new SplitPlayerVideo[this.settings.hoster](this, {
                 video: video
             })
         );
@@ -102,26 +109,64 @@ SplitPlayer.prototype = {
         this.readyCount--;
     },
 
+    /*
+     * called after all video player ready initialized
+     */
     onReady() {
 
         this.readyCount++;
 
+        // prevent if not all videos ready
+        if (this.readyCount !== this.videos.length) {
+            return console.info('videos not ready yet');
+        }
+
+        console.info('player and videos ready');
+
+        this.playerStateIs = playerState.ready;
+
+        // hook onReady for plugins
+        for (let Plugin of this.plugins) {
+            if (Plugin.onReady) {
+                Plugin.onReady();
+            }
+        }
+    },
+
+    changeState(state) {
+
+        console.info('state changed to %s', state);
+
+        // prevent if not all videos ready
         if (this.readyCount !== this.videos.length) {
             return false;
         }
 
-        this.playerStateIs = ready;
-
-        // hook onReady for plugins
-        for (let Plugin of this.plugins) {
-            Plugin.onReady();
+        if (state === playerState.buffering) {
+            return this.pause();
         }
+
+        if (state === playerState.pause) {
+            return this.pause();
+        }
+
+        if (state === playerState.playing) {
+            return this.play();
+        }
+
+
     },
 
     play() {
 
+        // prevent play if videos not ready
         if (this.readyCount !== this.videos.length) {
-            return false;
+            return console.info('play not ready yet');
+        }
+
+        // abort if is playing allready
+        if (this.playerStateIs === playerState.playing) {
+            return console.info('allready playing');
         }
 
         for (let video of this.videos) {
@@ -129,21 +174,26 @@ SplitPlayer.prototype = {
         }
 
         // hook onPlay for plugins
-        for (let plugin of this.plugins) {
-            plugin.onPlay();
+        for (let Plugin of this.plugins) {
+            if (Plugin.onPlay) {
+                Plugin.onPlay();
+            }
         }
+
+        this.playerStateIs = playerState.playing;
+
+        return console.info('playing');
     },
 
     pause() {
-
         // abort if not all videos ready
         if (this.readyCount !== this.videos.length) {
-            return false;
+            return console.log('pause not ready yet');
         }
 
         // abort if player not playing state
-        if (this.playerStateIs !== playing) {
-            return;
+        if (this.playerStateIs === playerState.pause) {
+            return console.log('allready pausing');
         }
 
         // pause all videos
@@ -152,12 +202,43 @@ SplitPlayer.prototype = {
         }
 
         // hook all plugins
-        for (let plugin of this.plugins) {
-            plugin.onPause();
+        for (let Plugin of this.plugins) {
+            if (Plugin.onPause) {
+                Plugin.onPause();
+            }
         }
 
-        // set pause state
-        this.playerStateIs = pause;
+        this.playerStateIs = playerState.pause;
+
+        return console.info('pause');
+    },
+
+    stop() {
+        // abort if not all videos ready
+        if (this.readyCount !== this.videos.length) {
+            return console.log('pause not ready yet');
+        }
+
+        // abort if player not playing state
+        if (this.playerStateIs === playerState.unstarted) {
+            return;
+        }
+
+        // pause all videos
+        for (let video of this.videos) {
+            video.stop();
+        }
+
+        // hook all plugins
+        for (let Plugin of this.plugins) {
+            if (Plugin.onStop) {
+                Plugin.onStop();
+            }
+        }
+
+        this.playerStateIs = playerState.unstarted;
+
+        return console.info('stopped');
     },
 
     timeTo(time) {
@@ -169,7 +250,6 @@ SplitPlayer.prototype = {
     },
 
     render() {
-
         if (this.settings.area === null) {
             return console.log('no html parent defined');
         }
@@ -184,21 +264,20 @@ SplitPlayer.prototype = {
 
 'use strict';
 
-var SplitPlayerTimeline = function (player, settings) {
+var SplitPlayerTimePicker = function (player, settings) {
     this.player = player;
     this.playedTime = 0;
     this.cycler = 0;
     this.paused = true;
     this.timeLine = null;
-
+    return this;
     this.settings = $.extend({
         element: null,
         currentTimeElement: null,
         durationElement: null,
         startTime: 0,
         duration: 10000,
-        previewLine: $('.preview-line'),
-        onChange: function () {}
+        previewLine: $('.preview-line')
     }, settings);
 
     this.playedTime = this.settings.startTime;
@@ -211,19 +290,26 @@ var SplitPlayerTimeline = function (player, settings) {
     return this;
 };
 
-SplitPlayerTimeline.prototype = {
+SplitPlayerTimePicker.prototype = {
+
+    onReady() {
+
+    },
 
     onPlay() {
+        return console.log('plugin on play');
         this.paused = false;
         this.run();
     },
 
     onPause() {
+        return console.log('plugin on pause');
         this.paused = true;
         clearTimeout(this.cycler);
     },
 
     onStop() {
+        return console.log('plugin on stop');
         this.playedTime = 0;
         this.update();
     },
@@ -286,8 +372,31 @@ SplitPlayerTimeline.prototype = {
 
 };
 
+/* globals $ */
 
-/* globals YT, $ */
+'use strict';
+
+var SplitPlayerTimeline = function (player, settings) {
+    return this;
+}
+
+SplitPlayerTimeline.prototype = {
+
+    onPlay() {
+        return console.log('plugin on play');
+    },
+
+    onPause() {
+        return console.log('plugin on pause');
+    },
+
+    onStop() {
+        return console.log('plugin on stop');
+    }
+};
+
+
+/* globals playerState, YT, $ */
 'use strict';
 
 var SplitPlayerVideo = SplitPlayerVideo || {};
@@ -308,48 +417,60 @@ SplitPlayerVideo.youtube = function (player, settings) {
     return this;
 };
 
+SplitPlayerVideo.youtube.load = function (callback) {
+    $.getScript('//youtube.com/iframe_api', function () {
+        window.onYouTubeIframeAPIReady = callback;
+    });
+};
+
 SplitPlayerVideo.youtube.prototype = {
 
-    load(callback) {
-        $.getScript('https://www.youtube.com/iframe_api', function () {
-            onYouTubeIframeAPIReady = function () {
-                callback();
-            };
-        });
-    },
-
     create() {
-        this.videoPlayer = new YT.Player('player' + this.settings.video.videoId, {
+
+        var self = this;
+        this.videoPlayer = new YT.Player(this.settings.video.videoId, {
             width: '100%',
             height: '100%',
             videoId: this.settings.video.videoId,
+            startSeconds: this.settings.video.startSeconds,
             playerVars: {
-                'controls': (this.settings.active ? 1 : 0)
+                'controls': 1
             },
             events: {
                 onReady: this.onReady.bind(this),
-                onStateChange: this.onStateChange.bind(this)
+                onStateChange (event) {
+                    self.onStateChange(event);
+                }
             }
         });
     },
 
     onReady() {
-
-        this.timeTo(0);
-        this.pause();
-
+        this.setPlayerDuration();
+        this.stop();
         this.player.onReady();
     },
 
     onStateChange(event) {
-        switch (event.data) {
-            case YT.PlayerState.PLAYING:
-                this.player.play();
-                break;
-            case YT.PlayerState.PAUSED:
-                this.player.pause();
-                break;
+
+        if (event.data === YT.PlayerState.BUFFERING) {
+            return this.player.changeState(playerState.buffering);
         }
+
+        if (event.data === YT.PlayerState.PLAYING) {
+            return this.player.changeState(playerState.playing);
+        }
+
+        if (event.data === YT.PlayerState.ENDED) {
+            this.timeTo(0);
+            return this.player.changeState(event.data);
+        }
+
+        if (event.data === YT.PlayerState.PAUSED) {
+            return this.player.changeState(playerState.pause);
+        }
+
+        console.info('event %s not fetched', event.data);
     },
 
     remove() {
@@ -358,7 +479,9 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     timeTo(time) {
-        this.videoPlayer.seekTo(time + this.settings.video.startSeconds);
+        time = (time + this.settings.video.startSeconds);
+        console.log('set time to %s', time);
+        this.videoPlayer.seekTo(time);
     },
 
     play() {
@@ -369,12 +492,33 @@ SplitPlayerVideo.youtube.prototype = {
         this.videoPlayer.pauseVideo();
     },
 
+    stop() {
+        this.timeTo(0);
+        this.pause();
+    },
+
     getDuration() {
-        this.videoPlayer.getDuration();
+        return this.videoPlayer.getDuration() - this.settings.video.startSeconds;
+    },
+
+    setPlayerDuration() {
+        var duration = this.getDuration();
+
+        if (this.player.duration < duration) {
+            this.player.duration = duration;
+        }
     },
 
     render() {
         $('#SplitPlayer').append('<div id="' + this.settings.video.videoId + '"><div>');
+    },
+
+    destroy() {
+        // remove youtube video iframe
+        this.videoPlayer.destory();
+
+        // remove this video
+        this.player.removeVideo(this);
     }
 
 };
