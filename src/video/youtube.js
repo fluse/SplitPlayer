@@ -8,6 +8,8 @@ SplitPlayerVideo.youtube = function (player, settings) {
     this.player = player;
     this.videoPlayer = null;
 
+    this.isSilent = false;
+
     this.settings = $.extend({
         video: null,
         type: 'youtube'
@@ -29,7 +31,6 @@ SplitPlayerVideo.youtube.prototype = {
 
     create() {
 
-        var self = this;
         this.videoPlayer = new YT.Player(this.settings.video.videoId, {
             width: '100%',
             height: '100%',
@@ -40,9 +41,7 @@ SplitPlayerVideo.youtube.prototype = {
             },
             events: {
                 onReady: this.onReady.bind(this),
-                onStateChange (event) {
-                    self.onStateChange(event);
-                }
+                onStateChange: this.onStateChange.bind(this)
             }
         });
     },
@@ -54,6 +53,11 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     onStateChange(event) {
+
+        if (this.isSilence) {
+            return;
+        }
+        console.log(event.data);
 
         if (event.data === YT.PlayerState.BUFFERING) {
             return this.player.changeState(playerState.buffering);
@@ -72,7 +76,11 @@ SplitPlayerVideo.youtube.prototype = {
             return this.player.changeState(playerState.pause);
         }
 
-        console.info('event %s not fetched', event.data);
+        console.info('state %s not fetched', event.data);
+    },
+
+    getPlayerState() {
+        return this.videoPlayer.getPlayerState();
     },
 
     remove() {
@@ -81,8 +89,24 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     timeTo(time) {
+        debugger;
+
+        if (this.getDuration() === 0) {
+            this.isSilent = true;
+            this.stop();
+            this.isSilent = false;
+            return;
+        }
+
+        if (time >= this.getDuration()) {
+            this.videoPlayer.seekTo(0);
+            return console.info('time for %s out of range', this.settings.video.videoId);
+        }
+
         time = (time + this.settings.video.startSeconds);
+
         console.log('set time to %s', time);
+
         this.videoPlayer.seekTo(time);
     },
 
@@ -104,10 +128,10 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     setPlayerDuration() {
-        var duration = this.getDuration();
+        let _duration = this.getDuration();
 
-        if (this.player.duration < duration) {
-            this.player.duration = duration;
+        if (this.player.duration < _duration) {
+            this.player.duration = _duration;
             this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
     },
@@ -122,10 +146,7 @@ SplitPlayerVideo.youtube.prototype = {
 
     destroy() {
         // remove youtube video iframe
-        this.videoPlayer.destory();
-
-        // remove this video
-        this.player.removeVideo(this);
+        $('#' + this.settings.video.videoId).find('iframe').remove();
     }
 
 };

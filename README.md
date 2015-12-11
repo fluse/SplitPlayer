@@ -1,10 +1,21 @@
 # SplitPlayer
 
+SplitPlayer is a high flexible extendable Video Player, that keeps multiple videos in sync.
+
+you can see an productive integration on http://splitplay.tv
+
+## restriction and licence
+
+you can use this player only for non commercial products and websites.
+
+#### Supported Hoster
+
+- Youtube
+
 ## dependencies
 
-- jQuery >1.8
+- jQuery > 1.8
 - underscoreJS
-
 
 ## create player
 
@@ -23,7 +34,7 @@ var options = {
 }
 ```
 
-### add video
+#### add video
 
 ```javascript
 // create new player
@@ -31,12 +42,13 @@ var player = new SplitPlayer(options);
 
 // add video
 player.addVideo({
-    videoId: '',
-    startSeconds: 1.2
+    videoId: String,
+    startSeconds: Number, // 1.2 float support
+    isMuted: Boolean
 });
 ```
 
-### add plugin
+#### add plugin
 
 ```javascript
 var player = new SplitPlayer(options);
@@ -45,7 +57,7 @@ var playerTimeline = player.addPlugin(SplitPlayerTimeline);
 };
 ```
 
-### extend plugin
+#### extend plugin
 
 maybe you want to add a new behavior to your playerTimeline, like an on hover show time
 
@@ -59,7 +71,7 @@ playerTimeline.extend(SplitPlayerTimePicker);
 };
 ```
 
-### playerStates
+#### playerStates
 
 ```javascript
 // player state constants
@@ -73,7 +85,7 @@ const playerState = {
 };
 ```
 
-### player hooks
+#### player hooks
 
 hooks are used to connect plugins to player behavior
 
@@ -82,3 +94,51 @@ hooks are used to connect plugins to player behavior
 - onPause
 - onStop
 - onUpdate
+
+#### play videos
+
+play all videos if videos ready
+
+```javascript
+player.play();
+```
+
+#### pause videos
+
+pause all videos
+
+```javascript
+player.pause();
+```
+
+#### toggle videos
+
+Toggle Video from play to pause vice versa
+
+```javascript
+player.toggle();
+```
+
+#### stop videos
+
+stop all videos. The played time will be set to 0 + startSeconds
+
+```javascript
+player.stop();
+```
+
+#### removeVideo
+
+remove a video from Player by calling following methods with argument videoId;
+
+```javascript
+player.removeVideo(videoId);
+```
+
+#### timeTo
+
+setTime for all Videos
+
+```javascript
+player.timeTo(Number); // float number supported
+```

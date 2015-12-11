@@ -7,8 +7,6 @@ var SplitPlayerTimeline = function (player) {
 
     this.element = null;
     this.bar = null;
-    this.cycler = null;
-    this.modules = [];
 
     this.template = '<div id="timeline"><i class="bar"></i></div>';
 
@@ -20,45 +18,50 @@ SplitPlayerTimeline.prototype = {
     /*
      * extend Module
      */
-    extend (Module) {
-        var instance = new Module(this);
-        this.modules.push(instance);
-        return instance;
+    extend(Module) {
+        return this.player.plugins.push(new Module(this));
     },
 
     /*
      * player onReady hook
      */
     onReady() {
-        this.render();
-    },
-
-    /*
-     * player onStop hook
-     */
-    onStop() {
-        this.reset();
+        this._render();
     },
 
     /*
      * player onUpdate hook
      */
     onUpdate() {
-        var percentage = ((this.player.getPlayedTime() * 100) / this.player.duration);
+        this.setTo(this.player.getPlayedTime());
+    },
+
+    /*
+     * player onStop hook
+     */
+    onStop() {
+        this._reset();
+    },
+
+    /*
+     * Set Time to
+     */
+    setTo(seconds) {
+        let percentage = ((seconds * 100) / this.player.duration);
         this.bar.css({
             width: percentage + '%'
         });
     },
 
-    reset() {
+    _reset() {
         this.bar.css({
             width: 0
         });
     },
 
-    formatTime(time) {
-        var minutes = Math.floor(time / 60);
-        var seconds = Math.round(time - minutes * 60);
+    _formatTime(time) {
+        let minutes = Math.floor(time / 60);
+        let seconds = Math.round(time - minutes * 60);
 
         if (seconds < 10) {
             seconds = '0' + seconds;
@@ -67,8 +70,8 @@ SplitPlayerTimeline.prototype = {
         return minutes + ':' + seconds;
     },
 
-    render() {
-        var tmp = $(this.player.settings.area).append(this.template);
+    _render() {
+        let tmp = $(this.player.settings.area).append(this.template);
         this.element = tmp.find('#timeline');
         this.bar = this.element.find('i');
     }

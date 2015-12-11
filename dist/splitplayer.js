@@ -31,7 +31,7 @@ var SplitPlayer = function SplitPlayer(settings) {
     this.ticker = null;
 
     // dependencie loading status
-    this.dependenciesLoaded = false;
+    this._dependenciesLoaded = false;
 
     this.settings = $.extend({
         hoster: 'youtube',
@@ -40,7 +40,7 @@ var SplitPlayer = function SplitPlayer(settings) {
         maxVideos: 4
     }, settings);
 
-    this.loadVideoDependencies();
+    this._loadVideoDependencies();
 
     return this;
 };
@@ -55,27 +55,28 @@ SplitPlayer.prototype = {
      * add Plugins
      */
     addPlugin: function addPlugin(Plugin) {
-        var instance = new Plugin(this);
-        this.plugins.push(instance);
-        return instance;
+        var _instance = new Plugin(this);
+        this.plugins.push(_instance);
+        return _instance;
     },
 
     /*
      * Load Video Dependecnies like youtubeIframeApi
      */
-    loadVideoDependencies: function loadVideoDependencies() {
+    _loadVideoDependencies: function _loadVideoDependencies() {
 
-        SplitPlayerVideo[this.settings.hoster].load(this.onVideoDependeciesReady.bind(this));
+        if (this._dependenciesLoaded) {
+            return;
+        }
+
+        SplitPlayerVideo[this.settings.hoster].load(this._onVideoDependeciesReady.bind(this));
     },
 
-    /*
-     * Load add Videos after Dependecnies Loaded
-     */
-    onVideoDependeciesReady: function onVideoDependeciesReady() {
+    _onVideoDependeciesReady: function _onVideoDependeciesReady() {
 
-        this.dependenciesLoaded = true;
+        this._dependenciesLoaded = true;
 
-        this.render();
+        this._render();
 
         /* add initial declared videos */
         var _iteratorNormalCompletion = true;
@@ -122,11 +123,45 @@ SplitPlayer.prototype = {
         }));
     },
 
-    removeVideo: function removeVideo(video) {
+    removeVideo: function removeVideo(videoId) {
 
-        _.findWhere(this.videos, video).remove();
+        var video = _.find(this.videos, function (item) {
+            return item.settings.video.videoId === videoId;
+        });
 
-        this.videos = _.without(this.videos, _.findWhere(this.videos, video));
+        if (!video) {
+            return false;
+        }
+
+        video.destroy();
+
+        this.videos = _.without(this.videos, video);
+
+        // reinit playerDuration
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+            for (var _iterator2 = this.videos[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var thisVideo = _step2.value;
+
+                thisVideo.setPlayerDuration();
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+                    _iterator2['return']();
+                }
+            } finally {
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
+                }
+            }
+        }
 
         this.readyCount--;
     },
@@ -146,36 +181,6 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.ready;
 
         // hook onReady for plugins
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
-
-        try {
-            for (var _iterator2 = this.plugins[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                var Plugin = _step2.value;
-
-                if (Plugin.onReady) {
-                    Plugin.onReady();
-                }
-            }
-        } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-                    _iterator2['return']();
-                }
-            } finally {
-                if (_didIteratorError2) {
-                    throw _iteratorError2;
-                }
-            }
-        }
-    },
-
-    onUpdate: function onUpdate() {
-        // hook all plugins
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;
         var _iteratorError3 = undefined;
@@ -184,8 +189,8 @@ SplitPlayer.prototype = {
             for (var _iterator3 = this.plugins[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
                 var Plugin = _step3.value;
 
-                if (Plugin.onUpdate) {
-                    Plugin.onUpdate();
+                if (Plugin.onReady) {
+                    Plugin.onReady();
                 }
             }
         } catch (err) {
@@ -204,7 +209,41 @@ SplitPlayer.prototype = {
         }
     },
 
+    onUpdate: function onUpdate() {
+        // hook all plugins
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
+
+        try {
+            for (var _iterator4 = this.plugins[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                var Plugin = _step4.value;
+
+                if (Plugin.onUpdate) {
+                    Plugin.onUpdate();
+                }
+            }
+        } catch (err) {
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+                    _iterator4['return']();
+                }
+            } finally {
+                if (_didIteratorError4) {
+                    throw _iteratorError4;
+                }
+            }
+        }
+    },
+
     changeState: function changeState(state) {
+
+        if (this.isFreezed) {
+            return false;
+        }
 
         console.info('state changed to %s', state);
 
@@ -228,58 +267,21 @@ SplitPlayer.prototype = {
 
     play: function play() {
 
-        // prevent play if videos not ready
-        if (this.readyCount !== this.videos.length) {
-            return console.info('play not ready yet');
-        }
-
-        // abort if is playing allready
-        if (this.playerStateIs === playerState.playing) {
-            return console.info('allready playing');
-        }
-
         // start ticker
-        this.ticker = window.setInterval(this.onUpdate.bind(this), 200);
-
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
-
-        try {
-            for (var _iterator4 = this.videos[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                var video = _step4.value;
-
-                video.play();
-            }
-
-            // hook onPlay for plugins
-        } catch (err) {
-            _didIteratorError4 = true;
-            _iteratorError4 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-                    _iterator4['return']();
-                }
-            } finally {
-                if (_didIteratorError4) {
-                    throw _iteratorError4;
-                }
-            }
-        }
+        this.ticker = window.setInterval(this.onUpdate.bind(this), 500);
 
         var _iteratorNormalCompletion5 = true;
         var _didIteratorError5 = false;
         var _iteratorError5 = undefined;
 
         try {
-            for (var _iterator5 = this.plugins[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                var Plugin = _step5.value;
+            for (var _iterator5 = this.videos[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                var video = _step5.value;
 
-                if (Plugin.onPlay) {
-                    Plugin.onPlay();
-                }
+                video.play();
             }
+
+            // hook onPlay for plugins
         } catch (err) {
             _didIteratorError5 = true;
             _iteratorError5 = err;
@@ -295,35 +297,18 @@ SplitPlayer.prototype = {
             }
         }
 
-        this.playerStateIs = playerState.playing;
-
-        return console.info('playing');
-    },
-
-    pause: function pause() {
-        // abort if not all videos ready
-        if (this.readyCount !== this.videos.length) {
-            return console.log('pause not ready yet');
-        }
-
-        // abort if player not playing state
-        if (this.playerStateIs === playerState.pause) {
-            return console.log('allready pausing');
-        }
-
-        // pause all videos
         var _iteratorNormalCompletion6 = true;
         var _didIteratorError6 = false;
         var _iteratorError6 = undefined;
 
         try {
-            for (var _iterator6 = this.videos[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                var video = _step6.value;
+            for (var _iterator6 = this.plugins[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                var Plugin = _step6.value;
 
-                video.pause();
+                if (Plugin.onPlay) {
+                    Plugin.onPlay();
+                }
             }
-
-            // stop ticker
         } catch (err) {
             _didIteratorError6 = true;
             _iteratorError6 = err;
@@ -339,21 +324,35 @@ SplitPlayer.prototype = {
             }
         }
 
-        clearInterval(this.ticker);
+        this.playerStateIs = playerState.playing;
 
-        // hook all plugins
+        return console.info('playing');
+    },
+
+    pause: function pause() {
+        // abort if not all videos ready
+        if (this.readyCount !== this.videos.length) {
+            return console.info('pause not ready yet');
+        }
+
+        // abort if player not playing state
+        if (this.playerStateIs === playerState.pause) {
+            return console.info('allready pausing');
+        }
+
+        // pause all videos
         var _iteratorNormalCompletion7 = true;
         var _didIteratorError7 = false;
         var _iteratorError7 = undefined;
 
         try {
-            for (var _iterator7 = this.plugins[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                var Plugin = _step7.value;
+            for (var _iterator7 = this.videos[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                var video = _step7.value;
 
-                if (Plugin.onPause) {
-                    Plugin.onPause();
-                }
+                video.pause();
             }
+
+            // stop ticker
         } catch (err) {
             _didIteratorError7 = true;
             _iteratorError7 = err;
@@ -369,35 +368,21 @@ SplitPlayer.prototype = {
             }
         }
 
-        this.playerStateIs = playerState.pause;
+        clearInterval(this.ticker);
 
-        return console.info('pause');
-    },
-
-    stop: function stop() {
-        // abort if not all videos ready
-        if (this.readyCount !== this.videos.length) {
-            return console.log('pause not ready yet');
-        }
-
-        // abort if player not playing state
-        if (this.playerStateIs === playerState.unstarted) {
-            return;
-        }
-
-        // pause all videos
+        // hook all plugins
         var _iteratorNormalCompletion8 = true;
         var _didIteratorError8 = false;
         var _iteratorError8 = undefined;
 
         try {
-            for (var _iterator8 = this.videos[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                var video = _step8.value;
+            for (var _iterator8 = this.plugins[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                var Plugin = _step8.value;
 
-                video.stop();
+                if (Plugin.onPause) {
+                    Plugin.onPause();
+                }
             }
-
-            // stop ticker
         } catch (err) {
             _didIteratorError8 = true;
             _iteratorError8 = err;
@@ -413,21 +398,45 @@ SplitPlayer.prototype = {
             }
         }
 
-        clearInterval(this.ticker);
+        this.playerStateIs = playerState.pause;
 
-        // hook all plugins
+        return console.info('pause');
+    },
+
+    /*
+     * Toggle Video from play to pause vice versa
+     */
+    toggle: function toggle() {
+        if (this.playerStateIs === playerState.pause) {
+            return this.play();
+        }
+        return this.pause();
+    },
+
+    stop: function stop() {
+        // abort if not all videos ready
+        if (this.readyCount !== this.videos.length) {
+            return console.info('stop not ready yet');
+        }
+
+        // abort if player not playing state
+        if (this.playerStateIs === playerState.unstarted) {
+            return;
+        }
+
+        // pause all videos
         var _iteratorNormalCompletion9 = true;
         var _didIteratorError9 = false;
         var _iteratorError9 = undefined;
 
         try {
-            for (var _iterator9 = this.plugins[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-                var Plugin = _step9.value;
+            for (var _iterator9 = this.videos[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                var video = _step9.value;
 
-                if (Plugin.onStop) {
-                    Plugin.onStop();
-                }
+                video.stop();
             }
+
+            // stop ticker
         } catch (err) {
             _didIteratorError9 = true;
             _iteratorError9 = err;
@@ -443,22 +452,20 @@ SplitPlayer.prototype = {
             }
         }
 
-        this.playerStateIs = playerState.unstarted;
+        clearInterval(this.ticker);
 
-        return console.info('stopped');
-    },
-
-    timeTo: function timeTo(time) {
+        // hook all plugins
         var _iteratorNormalCompletion10 = true;
         var _didIteratorError10 = false;
         var _iteratorError10 = undefined;
 
         try {
+            for (var _iterator10 = this.plugins[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                var Plugin = _step10.value;
 
-            for (var _iterator10 = this.videos[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-                var video = _step10.value;
-
-                video.timeTo(time);
+                if (Plugin.onStop) {
+                    Plugin.onStop();
+                }
             }
         } catch (err) {
             _didIteratorError10 = true;
@@ -474,11 +481,74 @@ SplitPlayer.prototype = {
                 }
             }
         }
+
+        this.playerStateIs = playerState.unstarted;
+
+        return console.info('stopped');
     },
 
-    render: function render() {
+    timeTo: function timeTo(time) {
+        var _iteratorNormalCompletion11 = true;
+        var _didIteratorError11 = false;
+        var _iteratorError11 = undefined;
+
+        try {
+            for (var _iterator11 = this.videos[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                var video = _step11.value;
+
+                video.timeTo(time);
+            }
+        } catch (err) {
+            _didIteratorError11 = true;
+            _iteratorError11 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion11 && _iterator11['return']) {
+                    _iterator11['return']();
+                }
+            } finally {
+                if (_didIteratorError11) {
+                    throw _iteratorError11;
+                }
+            }
+        }
+    },
+
+    _videosInState: function _videosInState(state) {
+        var inState = true;
+        var _iteratorNormalCompletion12 = true;
+        var _didIteratorError12 = false;
+        var _iteratorError12 = undefined;
+
+        try {
+            for (var _iterator12 = this.videos[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                var video = _step12.value;
+
+                if (video.getPlayerState() === state && inState) {
+                    inState = false;
+                }
+            }
+        } catch (err) {
+            _didIteratorError12 = true;
+            _iteratorError12 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion12 && _iterator12['return']) {
+                    _iterator12['return']();
+                }
+            } finally {
+                if (_didIteratorError12) {
+                    throw _iteratorError12;
+                }
+            }
+        }
+
+        return inState;
+    },
+
+    _render: function _render() {
         if (this.settings.area === null) {
-            return console.log('no html parent defined');
+            return console.info('no html parent defined', this.settings.area);
         }
 
         $(this.settings.area).html('<div id="SplitPlayer"></div>');
@@ -491,53 +561,45 @@ SplitPlayer.prototype = {
 'use strict';
 
 var SplitPlayerTimePicker = function SplitPlayerTimePicker(timeline) {
-
     this.timeline = timeline;
 
-    this.settings = $.extend({
-        element: null,
-        currentTimeElement: null,
-        durationElement: null,
-        startTime: 0,
-        duration: 10000,
-        previewLine: $('.preview-line')
-    }, settings);
-
+    this.template = '<i class="preview-line"><time></time></i>';
+    this.previewedTime = 0;
+    /*
     this.playedTime = this.settings.startTime;
-
-    this.setEvents();
-
-    $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
+     $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
     $(this.settings.currentTimeElement).html('0:00');
-
+    */
     return this;
 };
 
 SplitPlayerTimePicker.prototype = {
 
-    setEvents: function setEvents() {
-        var self = this;
-
-        this.timeLine = $(this.settings.element);
-
-        $('.rangeslider').on('mousedown', function () {
-            self.player.timeTo(self.playedTime);
-        }).on('mousemove', function (e) {
-            var leftPos = e.pageX - $(this).offset().left;
-            var percentage = leftPos * 100 / $(this).width();
-            var percentageRounded = Math.round(percentage);
-            var playerTime = self.formatTime(self.settings.duration / 100 * percentageRounded);
-
-            self.settings.previewLine.width(percentage + '%').find('time').html(playerTime);
-        });
-
-        $(document).on('input', 'input[type="range"]', function () {
-            var val = $(this).val();
-            self.playedTime = val;
-            self.settings.onChange(val);
-        });
+    onReady: function onReady() {
+        this.render();
+        this._setEvents();
     },
-    formatTime: function formatTime(time) {
+
+    _setEvents: function _setEvents() {
+        this.timeline.element.on('mousemove', this._showTime.bind(this)).on('mouseup', this._setTime.bind(this));
+    },
+
+    _showTime: function _showTime(e) {
+        var leftPos = e.pageX - this.timeline.element.offset().left;
+        var percentage = leftPos * 100 / this.timeline.element.width();
+        this.previewedTime = this.timeline.player.duration / 100 * percentage;
+
+        this.previewLine.width(percentage + '%').find('time').html(this._formatTime(this.previewedTime));
+    },
+
+    _setTime: function _setTime() {
+        this.timeline.player.pause();
+        this.timeline.player.timeTo(this.previewedTime);
+        this.timeline.setTo(this.previewedTime);
+        this.timeline.player.play();
+    },
+
+    _formatTime: function _formatTime(time) {
         var minutes = Math.floor(time / 60);
         var seconds = Math.round(time - minutes * 60);
 
@@ -546,6 +608,11 @@ SplitPlayerTimePicker.prototype = {
         }
 
         return minutes + ':' + seconds;
+    },
+
+    render: function render() {
+        this.timeline.element.append(this.template);
+        this.previewLine = this.timeline.element.find('.preview-line');
     }
 
 };
@@ -559,8 +626,6 @@ var SplitPlayerTimeline = function SplitPlayerTimeline(player) {
 
     this.element = null;
     this.bar = null;
-    this.cycler = null;
-    this.modules = [];
 
     this.template = '<div id="timeline"><i class="bar"></i></div>';
 
@@ -573,42 +638,47 @@ SplitPlayerTimeline.prototype = {
      * extend Module
      */
     extend: function extend(Module) {
-        var instance = new Module(this);
-        this.modules.push(instance);
-        return instance;
+        return this.player.plugins.push(new Module(this));
     },
 
     /*
      * player onReady hook
      */
     onReady: function onReady() {
-        this.render();
-    },
-
-    /*
-     * player onStop hook
-     */
-    onStop: function onStop() {
-        this.reset();
+        this._render();
     },
 
     /*
      * player onUpdate hook
      */
     onUpdate: function onUpdate() {
-        var percentage = this.player.getPlayedTime() * 100 / this.player.duration;
+        this.setTo(this.player.getPlayedTime());
+    },
+
+    /*
+     * player onStop hook
+     */
+    onStop: function onStop() {
+        this._reset();
+    },
+
+    /*
+     * Set Time to
+     */
+    setTo: function setTo(seconds) {
+        var percentage = seconds * 100 / this.player.duration;
         this.bar.css({
             width: percentage + '%'
         });
     },
 
-    reset: function reset() {
+    _reset: function _reset() {
         this.bar.css({
             width: 0
         });
     },
 
-    formatTime: function formatTime(time) {
+    _formatTime: function _formatTime(time) {
         var minutes = Math.floor(time / 60);
         var seconds = Math.round(time - minutes * 60);
 
@@ -619,7 +689,7 @@ SplitPlayerTimeline.prototype = {
         return minutes + ':' + seconds;
     },
 
-    render: function render() {
+    _render: function _render() {
         var tmp = $(this.player.settings.area).append(this.template);
         this.element = tmp.find('#timeline');
         this.bar = this.element.find('i');
@@ -635,6 +705,8 @@ SplitPlayerVideo.youtube = function (player, settings) {
 
     this.player = player;
     this.videoPlayer = null;
+
+    this.isSilent = false;
 
     this.settings = $.extend({
         video: null,
@@ -657,7 +729,6 @@ SplitPlayerVideo.youtube.prototype = {
 
     create: function create() {
 
-        var self = this;
         this.videoPlayer = new YT.Player(this.settings.video.videoId, {
             width: '100%',
             height: '100%',
@@ -668,9 +739,7 @@ SplitPlayerVideo.youtube.prototype = {
             },
             events: {
                 onReady: this.onReady.bind(this),
-                onStateChange: function onStateChange(event) {
-                    self.onStateChange(event);
-                }
+                onStateChange: this.onStateChange.bind(this)
             }
         });
     },
@@ -682,6 +751,11 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     onStateChange: function onStateChange(event) {
+
+        if (this.isSilence) {
+            return;
+        }
+        console.log(event.data);
 
         if (event.data === YT.PlayerState.BUFFERING) {
             return this.player.changeState(playerState.buffering);
@@ -700,7 +774,11 @@ SplitPlayerVideo.youtube.prototype = {
             return this.player.changeState(playerState.pause);
         }
 
-        console.info('event %s not fetched', event.data);
+        console.info('state %s not fetched', event.data);
+    },
+
+    getPlayerState: function getPlayerState() {
+        return this.videoPlayer.getPlayerState();
     },
 
     remove: function remove() {
@@ -709,8 +787,24 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     timeTo: function timeTo(time) {
+        debugger;
+
+        if (this.getDuration() === 0) {
+            this.isSilent = true;
+            this.stop();
+            this.isSilent = false;
+            return;
+        }
+
+        if (time >= this.getDuration()) {
+            this.videoPlayer.seekTo(0);
+            return console.info('time for %s out of range', this.settings.video.videoId);
+        }
+
         time = time + this.settings.video.startSeconds;
+
         console.log('set time to %s', time);
+
         this.videoPlayer.seekTo(time);
     },
 
@@ -732,10 +826,10 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     setPlayerDuration: function setPlayerDuration() {
-        var duration = this.getDuration();
+        var _duration = this.getDuration();
 
-        if (this.player.duration < duration) {
-            this.player.duration = duration;
+        if (this.player.duration < _duration) {
+            this.player.duration = _duration;
             this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
     },
@@ -750,10 +844,7 @@ SplitPlayerVideo.youtube.prototype = {
 
     destroy: function destroy() {
         // remove youtube video iframe
-        this.videoPlayer.destory();
-
-        // remove this video
-        this.player.removeVideo(this);
+        $('#' + this.settings.video.videoId).find('iframe').remove();
     }
 
 };

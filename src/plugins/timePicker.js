@@ -3,54 +3,48 @@
 'use strict';
 
 var SplitPlayerTimePicker = function (timeline) {
-
     this.timeline = timeline;
 
-    this.settings = $.extend({
-        element: null,
-        currentTimeElement: null,
-        durationElement: null,
-        startTime: 0,
-        duration: 10000,
-        previewLine: $('.preview-line')
-    }, settings);
-
+    this.template = '<i class="preview-line"><time></time></i>';
+    this.previewedTime = 0;
+    /*
     this.playedTime = this.settings.startTime;
-
-    this.setEvents();
 
     $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
     $(this.settings.currentTimeElement).html('0:00');
-
+    */
     return this;
 };
 
 SplitPlayerTimePicker.prototype = {
 
-    setEvents() {
-        var self = this;
-
-        this.timeLine = $(this.settings.element);
-
-
-        $('.rangeslider').on('mousedown', function () {
-            self.player.timeTo(self.playedTime);
-        }).on('mousemove', function (e) {
-            var leftPos = e.pageX - $(this).offset().left;
-            var percentage = leftPos * 100 / $(this).width();
-            var percentageRounded = Math.round(percentage);
-            var playerTime = self.formatTime(self.settings.duration / 100 * percentageRounded);
-
-            self.settings.previewLine.width(percentage + '%').find('time').html(playerTime);
-        });
-
-        $(document).on('input', 'input[type="range"]', function() {
-            var val = $(this).val();
-            self.playedTime = val;
-            self.settings.onChange(val);
-        });
+    onReady() {
+        this.render();
+        this._setEvents();
     },
-    formatTime(time) {
+
+    _setEvents() {
+        this.timeline.element
+            .on('mousemove', this._showTime.bind(this))
+            .on('mouseup', this._setTime.bind(this));
+    },
+
+    _showTime(e) {
+        let leftPos = (e.pageX - this.timeline.element.offset().left);
+        let percentage = ((leftPos * 100) / this.timeline.element.width());
+        this.previewedTime = ((this.timeline.player.duration / 100) * percentage);
+
+        this.previewLine.width(percentage + '%').find('time').html(this._formatTime(this.previewedTime));
+    },
+
+    _setTime() {
+        this.timeline.player.pause();
+        this.timeline.player.timeTo(this.previewedTime);
+        this.timeline.setTo(this.previewedTime);
+        this.timeline.player.play();
+    },
+
+    _formatTime(time) {
         var minutes = Math.floor(time / 60);
         var seconds = Math.round(time - minutes * 60);
 
@@ -59,6 +53,11 @@ SplitPlayerTimePicker.prototype = {
         }
 
         return minutes + ':' + seconds;
+    },
+
+    render() {
+        this.timeline.element.append(this.template);
+        this.previewLine = this.timeline.element.find('.preview-line');
     }
 
 };
