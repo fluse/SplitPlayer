@@ -15,6 +15,11 @@
                 flex: 1;
             }
 
+            #SplitPlayer > * {
+                position: relative;
+                background: #000;
+            }
+
             #timeline {
                 width: 100%;
                 position: relative;
@@ -49,17 +54,31 @@
                 bottom: 0;
 
             }
+
+            #splitPlayerController {
+                text-align: center;
+            }
+            .no-video {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
         </style>
 
         <div id="videoPlayer">
         </div>
 
-        <span onclick="player.play()">play</span>
-        <span onclick="player.pause()">pause</span>
-        <span onclick="player.stop()">stop</span>
-        <span onclick="player.toggle()">toggle</span>
+        <div id="splitPlayerController">
 
-        <input type="text" value="100" onChange="setVolume(this)" />
+            <span onclick="player.play()">play</span>
+            <span onclick="player.pause()">pause</span>
+            <span onclick="player.stop()">stop</span>
+            <span onclick="player.toggle()">toggle</span>
+
+            <input type="text" value="100" onChange="setVolume(this)" />
+        </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
@@ -79,7 +98,7 @@
             },  {
                 videoId: 'QfrUodC2dbg',
                 startSeconds: 0,
-                isMuted: true
+                isMuted: false
             }, {
                 videoId: 'sk7A56KVNBY',
                 startSeconds: 0,

@@ -122,18 +122,27 @@ SplitPlayer.prototype = {
         new SplitPlayerVideo[this.settings.hoster](this, video));
     },
 
+    destroyVideo: function destroyVideo(videoId) {
+        // first remove video from player list
+        var video = this.removeVideo(videoId);
+
+        // destory video him
+        video.destroy();
+    },
+
     removeVideo: function removeVideo(videoId) {
 
-        var video = _.find(this.videos, function (item) {
-            return item.settings.video.videoId === videoId;
+        // get video from array
+        var video = _.find(this.videos, function (video) {
+            return video.settings.videoId === videoId;
         });
 
+        // if there is a video
         if (!video) {
             return false;
         }
 
-        video.destroy();
-
+        // remove it from array
         this.videos = _.without(this.videos, video);
 
         // reinit playerDuration
@@ -147,6 +156,8 @@ SplitPlayer.prototype = {
 
                 thisVideo.setPlayerDuration();
             }
+
+            // and set readyCount one lower;
         } catch (err) {
             _didIteratorError2 = true;
             _iteratorError2 = err;
@@ -163,6 +174,8 @@ SplitPlayer.prototype = {
         }
 
         this.readyCount--;
+
+        return video;
     },
 
     /*
@@ -601,62 +614,6 @@ SplitPlayerTimeHud.prototype = {
 
 'use strict';
 
-var SplitPlayerTimePicker = function SplitPlayerTimePicker(timeline) {
-    this.timeline = timeline;
-
-    this.template = '<i class="preview-line"><time></time></i>';
-    this.previewedTime = 0;
-
-    this._render();
-    this._setEvents();
-    return this;
-};
-
-SplitPlayerTimePicker.prototype = {
-
-    onReady: function onReady() {},
-
-    _setEvents: function _setEvents() {
-        this.timeline.element.on('mousemove', this._showTime.bind(this)).on('mouseup', this._setTime.bind(this));
-    },
-
-    _showTime: function _showTime(e) {
-        var leftPos = e.pageX - this.timeline.element.offset().left;
-        var percentage = leftPos * 100 / this.timeline.element.width();
-        this.previewedTime = this.timeline.player.duration / 100 * percentage;
-
-        this.previewLine.width(percentage + '%').find('time').html(this._formatTime(this.previewedTime));
-    },
-
-    _setTime: function _setTime() {
-        this.timeline.player.pause();
-        //this.timeline.player.timeTo(this.previewedTime);
-        this.timeline.setTo(this.previewedTime);
-        this.timeline.player.play();
-    },
-
-    _formatTime: function _formatTime(time) {
-        var minutes = Math.floor(time / 60);
-        var seconds = Math.round(time - minutes * 60);
-
-        if (seconds < 10) {
-            seconds = '0' + seconds;
-        }
-
-        return minutes + ':' + seconds;
-    },
-
-    _render: function _render() {
-        this.timeline.element.append(this.template);
-        this.previewLine = this.timeline.element.find('.preview-line');
-    }
-
-};
-
-/* globals $ */
-
-'use strict';
-
 var SplitPlayerTimeline = function SplitPlayerTimeline(player) {
     this.player = player;
     this.element = null;
@@ -736,6 +693,62 @@ SplitPlayerTimeline.prototype = {
     }
 };
 
+/* globals $ */
+
+'use strict';
+
+var SplitPlayerTimePicker = function SplitPlayerTimePicker(timeline) {
+    this.timeline = timeline;
+
+    this.template = '<i class="preview-line"><time></time></i>';
+    this.previewedTime = 0;
+
+    this._render();
+    this._setEvents();
+    return this;
+};
+
+SplitPlayerTimePicker.prototype = {
+
+    onReady: function onReady() {},
+
+    _setEvents: function _setEvents() {
+        this.timeline.element.on('mousemove', this._showTime.bind(this)).on('mouseup', this._setTime.bind(this));
+    },
+
+    _showTime: function _showTime(e) {
+        var leftPos = e.pageX - this.timeline.element.offset().left;
+        var percentage = leftPos * 100 / this.timeline.element.width();
+        this.previewedTime = this.timeline.player.duration / 100 * percentage;
+
+        this.previewLine.width(percentage + '%').find('time').html(this._formatTime(this.previewedTime));
+    },
+
+    _setTime: function _setTime() {
+        this.timeline.player.stop();
+        this.timeline.player.timeTo(this.previewedTime);
+        this.timeline.setTo(this.previewedTime);
+        this.timeline.player.play();
+    },
+
+    _formatTime: function _formatTime(time) {
+        var minutes = Math.floor(time / 60);
+        var seconds = Math.round(time - minutes * 60);
+
+        if (seconds < 10) {
+            seconds = '0' + seconds;
+        }
+
+        return minutes + ':' + seconds;
+    },
+
+    _render: function _render() {
+        this.timeline.element.append(this.template);
+        this.previewLine = this.timeline.element.find('.preview-line');
+    }
+
+};
+
 /* globals playerState, YT, $ */
 'use strict';
 
@@ -754,7 +767,7 @@ SplitPlayerVideo.youtube = function (player, settings) {
 
     this.isMuted = this.settings.isMuted;
 
-    this.render();
+    this._render();
     this.create();
 
     return this;
@@ -770,7 +783,7 @@ SplitPlayerVideo.youtube.prototype = {
 
     create: function create() {
 
-        this.videoPlayer = new YT.Player(this.settings.videoId, {
+        this.videoPlayer = new YT.Player('replacer' + this.settings.videoId, {
             width: '100%',
             height: '100%',
             videoId: this.settings.videoId,
@@ -780,7 +793,8 @@ SplitPlayerVideo.youtube.prototype = {
             },
             events: {
                 onReady: this.onReady.bind(this),
-                onStateChange: this.onStateChange.bind(this)
+                onStateChange: this.onStateChange.bind(this),
+                onError: this.onError.bind(this)
             }
         });
     },
@@ -789,6 +803,15 @@ SplitPlayerVideo.youtube.prototype = {
         this.setPlayerDuration();
         this.mute();
         this.player.onReady();
+    },
+
+    onError: function onError(err) {
+        var code = err.data;
+        if (code === 100 || code === 150) {
+            console.error('Video %s Not Found', this.settings.videoId);
+        }
+
+        this.noVideo();
     },
 
     onStateChange: function onStateChange(event) {
@@ -817,11 +840,6 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     timeTo: function timeTo(time) {
-
-        if (this.getDuration() === 0) {
-            this.stop();
-            return;
-        }
 
         if (time >= this.getDuration()) {
             this.videoPlayer.seekTo(0);
@@ -895,14 +913,18 @@ SplitPlayerVideo.youtube.prototype = {
         return this.videoPlayer.getCurrentTime() - this.settings.startSeconds;
     },
 
-    render: function render() {
-        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div>');
+    _render: function _render() {
+        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div id="replacer' + this.settings.videoId + '"><div></div>');
+    },
+
+    noVideo: function noVideo() {
+        this.player.removeVideo(this.settings.videoId);
+        $('#' + this.settings.videoId).html('<div class="no-video"></div>');
     },
 
     destroy: function destroy() {
         // remove youtube video iframe
-        $('#' + this.settings.videoId).find('iframe').remove();
+        $('#' + this.settings.videoId).remove();
     }
 
 };
-//# sourceMappingURL=splitplayer.js.map

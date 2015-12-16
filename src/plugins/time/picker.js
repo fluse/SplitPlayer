@@ -35,8 +35,8 @@ SplitPlayerTimePicker.prototype = {
     },
 
     _setTime() {
-        this.timeline.player.pause();
-        //this.timeline.player.timeTo(this.previewedTime);
+        this.timeline.player.stop();
+        this.timeline.player.timeTo(this.previewedTime);
         this.timeline.setTo(this.previewedTime);
         this.timeline.player.play();
     },

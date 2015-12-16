@@ -106,18 +106,27 @@ SplitPlayer.prototype = {
 
     },
 
+    destroyVideo(videoId) {
+        // first remove video from player list
+        var video = this.removeVideo(videoId);
+
+        // destory video him
+        video.destroy();
+    },
+
     removeVideo(videoId) {
 
-        var video = _.find(this.videos, function(item) {
-            return item.settings.video.videoId === videoId;
+        // get video from array
+        var video = _.find(this.videos, function(video) {
+            return video.settings.videoId === videoId;
         });
 
+        // if there is a video
         if (!video) {
             return false;
         }
 
-        video.destroy();
-
+        // remove it from array
         this.videos = _.without(
             this.videos,
             video
@@ -128,7 +137,10 @@ SplitPlayer.prototype = {
             thisVideo.setPlayerDuration();
         }
 
+        // and set readyCount one lower;
         this.readyCount--;
+
+        return video;
     },
 
     /*

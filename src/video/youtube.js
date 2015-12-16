@@ -16,7 +16,7 @@ SplitPlayerVideo.youtube = function (player, settings) {
 
     this.isMuted = this.settings.isMuted;
 
-    this.render();
+    this._render();
     this.create();
 
     return this;
@@ -32,7 +32,7 @@ SplitPlayerVideo.youtube.prototype = {
 
     create() {
 
-        this.videoPlayer = new YT.Player(this.settings.videoId, {
+        this.videoPlayer = new YT.Player('replacer' + this.settings.videoId, {
             width: '100%',
             height: '100%',
             videoId: this.settings.videoId,
@@ -42,7 +42,8 @@ SplitPlayerVideo.youtube.prototype = {
             },
             events: {
                 onReady: this.onReady.bind(this),
-                onStateChange: this.onStateChange.bind(this)
+                onStateChange: this.onStateChange.bind(this),
+                onError: this.onError.bind(this)
             }
         });
     },
@@ -51,6 +52,15 @@ SplitPlayerVideo.youtube.prototype = {
         this.setPlayerDuration();
         this.mute();
         this.player.onReady();
+    },
+
+    onError(err) {
+        var code = err.data;
+        if (code === 100 || code === 150) {
+            console.error('Video %s Not Found', this.settings.videoId);
+        }
+
+        this.noVideo();
     },
 
     onStateChange(event) {
@@ -79,11 +89,6 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     timeTo(time) {
-
-        if (this.getDuration() === 0) {
-            this.stop();
-            return;
-        }
 
         if (time >= this.getDuration()) {
             this.videoPlayer.seekTo(0);
@@ -157,13 +162,18 @@ SplitPlayerVideo.youtube.prototype = {
         return this.videoPlayer.getCurrentTime() - this.settings.startSeconds;
     },
 
-    render() {
-        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div>');
+    _render() {
+        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div id="replacer' + this.settings.videoId + '"><div></div>');
+    },
+
+    noVideo() {
+        this.player.removeVideo(this.settings.videoId);
+        $('#' + this.settings.videoId).html('<div class="no-video"></div>');
     },
 
     destroy() {
         // remove youtube video iframe
-        $('#' + this.settings.videoId).find('iframe').remove();
+        $('#' + this.settings.videoId).remove();
     }
 
 };
