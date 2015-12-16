@@ -2,34 +2,43 @@
 
 'use strict';
 
-var SplitPlayerTimeDisplay = function (timeline) {
-    this.timeline = timeline;
+var SplitPlayerTimeDisplay = function (timeManager, settings) {
+    this.timeManager = timeManager;
+    this.$display = null;
+    this.$duration = null;
+    this.$current = null;
 
-    this.template = '<i class="preview-line"><time></time></i>';
+    // extend settings
+    this.settings = $.extend({}, this.timeManager.settings, {
+        area: null,
+        template: '<i class="time-display"><time class="current"></time><time class="duration"></time></i>'
+    }, settings);
 
-    //this._render();
+    this._render();
     return this;
 };
 
 SplitPlayerTimeDisplay.prototype = {
 
     onReady() {
-
+        this.onSetTo(this.timeManager.getData());
     },
 
-    onUpdate() {
-        /*
-        this.playedTime = this.settings.startTime;
-
-        $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
-        $(this.settings.currentTimeElement).html('0:00');
-        */
+    onSetTo(data) {
+        this.$duration.html(data.durationFormatted);
+        this.$current.html(data.playedTimeFormatted);
     },
-
 
     _render() {
-        this.timeline.element.append(this.template);
-        this.previewLine = this.timeline.element.find('.preview-line');
+        if (this.settings.area === null) {
+            return console.error('no dropArea for timeDisplay defined');
+        }
+
+        this.$display = $(this.settings.area);
+        this.$display.append(this.settings.template);
+
+        this.$duration = this.$display.find('.duration');
+        this.$current = this.$display.find('.current');
     }
 
 };

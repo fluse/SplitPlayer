@@ -66,6 +66,7 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     onError(err) {
+
         var code = err.data;
         if (code === 100 || code === 150) {
             console.error('Video %s Not Found', this.settings.videoId);

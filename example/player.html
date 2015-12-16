@@ -65,10 +65,33 @@
                 right: 0;
                 bottom: 0;
             }
+            .grd-1 {
+                display: block;
+                width: 100%;
+            }
+
+            #playerTimeDisplay {
+                float: left;
+                width: 15%;
+            }
+            #playerTimeline {
+                float: right;
+                width: 85%;
+            }
         </style>
 
         <div id="videoPlayer">
         </div>
+
+        <div class="grd-1">
+            <div id="playerTimeDisplay">
+
+            </div>
+            <div id="playerTimeline">
+
+            </div>
+        </div>
+
 
         <div id="splitPlayerController">
 
@@ -107,6 +130,26 @@
                 hoster: 'youtube',
                 startSeconds: 0,
                 isMuted: true
+            },{
+                videoId: 'P5qpMS0KLLs',
+                hoster: 'youtube',
+                startSeconds: 0,
+                isMuted: true
+            },{
+                videoId: '3gJJYv4oAYU',
+                hoster: 'youtube',
+                startSeconds: 0,
+                isMuted: true
+            },{
+                videoId: '3gJJYv4oAYU',
+                hoster: 'youtube',
+                startSeconds: 0,
+                isMuted: true
+            },{
+                videoId: '3gJJYv4oAYU',
+                hoster: 'youtube',
+                startSeconds: 0,
+                isMuted: true
             }];
 
             var player = new SplitPlayer({
@@ -117,13 +160,17 @@
             var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
             // add timeline
-            playerTimeManager.extend(SplitPlayerTimeLine);
+            playerTimeManager.extend(SplitPlayerTimeLine, {
+                area: '#playerTimeline'
+            });
 
             // add timeline time picker
             playerTimeManager.extend(SplitPlayerTimePicker);
 
             // add show time in hud
-            playerTimeManager.extend(SplitPlayerTimeDisplay);
+            playerTimeManager.extend(SplitPlayerTimeDisplay, {
+                area: '#playerTimeDisplay'
+            });
 
             var setVolume = function (el) {
                 player.volumeTo($(el).val());

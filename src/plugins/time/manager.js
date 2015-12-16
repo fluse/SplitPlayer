@@ -6,7 +6,7 @@ var SplitPlayerTimeManager = function (player, settings) {
     this.player = player;
 
     this.isActive = false;
-    this.seconds = 0;
+    this.playedTime = 0;
 
     this.plugins = [];
 
@@ -22,8 +22,8 @@ SplitPlayerTimeManager.prototype = {
     /*
      * extend Module
      */
-    extend(Module) {
-        Module = new Module(this);
+    extend(Module, settings) {
+        Module = new Module(this, settings || {});
 
         // push internal
         this.plugins.push(Module);
@@ -50,14 +50,14 @@ SplitPlayerTimeManager.prototype = {
      * player onStop hook
      */
     onStop() {
-        this.seconds = 0;
+        this.playedTime = 0;
     },
 
     /*
      * Set Time to
      */
-    setTo(seconds) {
-        this.seconds = seconds;
+    setTo(playedTime) {
+        this.playedTime = playedTime;
 
         // plugin
         for (let Plugin of this.plugins) {
@@ -67,30 +67,39 @@ SplitPlayerTimeManager.prototype = {
         }
     },
 
+    /*
+     * get all time data from player
+     */
     getData() {
         // get percentage
-        const percentage = ((this.seconds * 100) / this.player.duration);
+        const percentage = ((this.playedTime * 100) / this.player.duration);
+        // player duration
+        const duration = this.player.duration;
 
-        // formatted seconds
-        const formattedTime = this._formatTime(this.seconds);
+        // formatted playedTime
+        const playedTimeFormatted = this._formatTime(this.playedTime);
+        // formatted duration
+        const durationFormatted = this._formatTime(duration);
 
         return {
-            seconds: this.seconds,
-            formattedTime: formattedTime,
-            percentage: percentage
+            percentage: percentage,
+            playedTime: this.playedTime,
+            playedTimeFormatted: playedTimeFormatted,
+            duration: duration,
+            durationFormatted: durationFormatted
         };
     },
 
-    _formatTime(timeInSeconds) {
+    _formatTime(timeInplayedTime) {
         // convert to minutes
-        let minutes = Math.floor(timeInSeconds / 60);
-        // get seconds;
-        let seconds = Math.round(timeInSeconds - minutes * 60);
+        let minutes = Math.floor(timeInplayedTime / 60);
+        // get playedTime;
+        let playedTime = Math.round(timeInplayedTime - minutes * 60);
 
-        if (seconds < 10) {
-            seconds = '0' + seconds;
+        if (playedTime < 10) {
+            playedTime = '0' + playedTime;
         }
 
-        return minutes + ':' + seconds;
+        return minutes + ':' + playedTime;
     }
 };

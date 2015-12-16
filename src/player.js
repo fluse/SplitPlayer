@@ -37,7 +37,7 @@ var SplitPlayer = function (settings) {
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 4,
+        maxVideos: 6,
         volume: 100
     }, settings);
 
