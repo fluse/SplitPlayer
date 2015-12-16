@@ -1,30 +1,29 @@
-/*
-this.playedTime = this.settings.startTime;
-
-$(this.settings.durationElement).html(this.formatTime(this.settings.duration));
-$(this.settings.currentTimeElement).html('0:00');
-*/
 /* globals $ */
 
 'use strict';
 
-var SplitPlayerTimeHud = function (timeline) {
+var SplitPlayerTimeDisplay = function (timeline) {
     this.timeline = timeline;
 
     this.template = '<i class="preview-line"><time></time></i>';
 
-    this._render();
+    //this._render();
     return this;
 };
 
-SplitPlayerTimeHud.prototype = {
+SplitPlayerTimeDisplay.prototype = {
 
     onReady() {
 
     },
 
     onUpdate() {
-        
+        /*
+        this.playedTime = this.settings.startTime;
+
+        $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
+        $(this.settings.currentTimeElement).html('0:00');
+        */
     },
 
 

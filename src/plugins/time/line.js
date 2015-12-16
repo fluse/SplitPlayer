@@ -2,40 +2,31 @@
 
 'use strict';
 
-var SplitPlayerTimeline = function (player) {
-    this.player = player;
-    this.element = null;
-    this.bar = null;
-    this.isActive = false;
+var SplitPlayerTimeLine = function (timeManager, settings) {
+    this.timeManager = timeManager;
 
-    this.template = '<div id="timeline"><i class="bar"></i></div>';
+    // register timeline inside timeManager
+    this.timeManager.timeline = null;
+
+    this.bar = null;
+
+    // extend settings
+    this.settings = $.extend({}, this.timeManager.settings, {
+        template: '<div id="timeline"><i class="bar"></i></div>'
+    }, settings);
 
     this._render();
 
     return this;
 };
 
-SplitPlayerTimeline.prototype = {
-
-    /*
-     * extend Module
-     */
-    extend(Module) {
-        return this.player.plugins.push(new Module(this));
-    },
+SplitPlayerTimeLine.prototype = {
 
     /*
      * player onReady hook
      */
     onReady() {
         this.isActive = true;
-    },
-
-    /*
-     * player onUpdate hook
-     */
-    onUpdate() {
-        this.setTo(this.player.getPlayedTime());
     },
 
     /*
@@ -46,13 +37,11 @@ SplitPlayerTimeline.prototype = {
     },
 
     /*
-     * Set Time to
+     * timeManager onSetTo hook
      */
-    setTo(seconds) {
-        let percentage = ((seconds * 100) / this.player.duration);
-
+    onSetTo(data) {
         this.bar.css({
-            width: percentage + '%'
+            width: data.percentage + '%'
         });
     },
 
@@ -62,21 +51,10 @@ SplitPlayerTimeline.prototype = {
         });
     },
 
-    _formatTime(time) {
-        let minutes = Math.floor(time / 60);
-        let seconds = Math.round(time - minutes * 60);
-
-        if (seconds < 10) {
-            seconds = '0' + seconds;
-        }
-
-        return minutes + ':' + seconds;
-    },
-
     _render() {
-        let tmp = $(this.player.settings.area).append(this.template);
+        let dom = $(this.settings.area).append(this.settings.template);
 
-        this.element = $(tmp).find('#timeline');
-        this.bar = this.element.find('i');
+        this.timeManager.timeline = dom.find('#timeline');
+        this.bar = this.timeManager.timeline .find('i');
     }
 };

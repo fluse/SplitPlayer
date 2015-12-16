@@ -53,23 +53,30 @@ player.addVideo({
 ```javascript
 var player = new SplitPlayer(options);
 
-var playerTimeline = player.addPlugin(SplitPlayerTimeline);
+var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 };
 ```
 
-#### extend plugin
+#### add plugin and extend plugin with modules
 
-maybe you want to add a new behavior to your playerTimeline, like an on hover show time
+maybe you want to add a new behavior to your playerTime, like an on hover show time
 
 ```javascript
-var player = new SplitPlayer(options);
 
-var playerTimeline = player.addPlugin(SplitPlayerTimeline);
+    var player = new SplitPlayer(options);
 
-playerTimeline.extend(SplitPlayerTimePicker);
+    var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+
+    playerTimeManager.extend(SplitPlayerTimePicker);
 
 };
 ```
+
+#### available time Plugins
+
+- Timeline
+- Timepicker
+- TimeDisplay
 
 #### playerStates
 
@@ -94,6 +101,8 @@ hooks are used to connect plugins to player behavior
 - onPause
 - onStop
 - onUpdate
+
+### Public Methods
 
 #### play videos
 

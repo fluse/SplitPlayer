@@ -39,9 +39,14 @@ var SplitPlayer = function (settings) {
         area: null,
         maxVideos: 4,
         volume: 100
-    }, settings) ;
+    }, settings);
 
-    this._loadVideoDependencies();
+    this._render();
+
+    /* add initial declared videos */
+    for (let video of this.settings.videos) {
+        this.addVideo(video);
+    }
 
     return this;
 };
@@ -61,33 +66,14 @@ SplitPlayer.prototype = {
         return _instance;
     },
 
-    /*
-     * Load Video Dependecnies like youtubeIframeApi
-     */
-    _loadVideoDependencies() {
-
-        if (this._dependenciesLoaded) {
-            return;
-        }
-
-        SplitPlayerVideo[this.settings.hoster].load(
-            this._onVideoDependeciesReady.bind(this)
-        );
-
-    },
-
     _onVideoDependeciesReady() {
 
-        this._dependenciesLoaded = true;
-
-        this._render();
+        this.playerStateIs = playerState.loading;
 
         /* add initial declared videos */
-        for (let video of this.settings.videos) {
-            this.addVideo(video);
+        for (let video of this.videos) {
+            video.ready();
         }
-
-        this.playerStateIs = playerState.loading;
 
         console.info('api loaded');
     },
@@ -99,9 +85,15 @@ SplitPlayer.prototype = {
             return console.info('video limit reached only %s allowed', this.settings.maxVideos);
         }
 
+        var current = new SplitPlayerVideo[video.hoster](this, video);
+
+        current.load(
+            this._onVideoDependeciesReady.bind(this)
+        );
+
         this.videos.push(
             // create hoster specific video instance
-            new SplitPlayerVideo[this.settings.hoster](this, video)
+            current
         );
 
     },
@@ -110,7 +102,7 @@ SplitPlayer.prototype = {
         // first remove video from player list
         var video = this.removeVideo(videoId);
 
-        // destory video him
+        // destory video
         video.destroy();
     },
 
@@ -214,6 +206,9 @@ SplitPlayer.prototype = {
 
     pause() {
 
+        // stop ticker
+        clearInterval(this.ticker);
+
         // abort if player not playing state
         if (this.playerStateIs === playerState.pause) {
             return console.info('allready pausing');
@@ -223,9 +218,6 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.pause();
         }
-
-        // stop ticker
-        clearInterval(this.ticker);
 
         // hook all plugins
         for (let Plugin of this.plugins) {
@@ -251,7 +243,10 @@ SplitPlayer.prototype = {
 
     stop() {
 
-        // abort if player not playing state
+        // stop ticker
+        clearInterval(this.ticker);
+
+        // abort if player not in playing state
         if (this.playerStateIs !== playerState.pause && this.playerStateIs !== playerState.playing) {
             return;
         }
@@ -260,9 +255,6 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.stop();
         }
-
-        // stop ticker
-        clearInterval(this.ticker);
 
         // hook all plugins
         for (let Plugin of this.plugins) {

@@ -16,19 +16,30 @@ SplitPlayerVideo.youtube = function (player, settings) {
 
     this.isMuted = this.settings.isMuted;
 
-    this._render();
-    this.create();
-
     return this;
 };
 
-SplitPlayerVideo.youtube.load = function (callback) {
-    $.getScript('//youtube.com/iframe_api', function () {
-        window.onYouTubeIframeAPIReady = callback;
-    });
-};
-
 SplitPlayerVideo.youtube.prototype = {
+
+    loadingDependencies: false,
+
+    load(callback) {
+
+        if (this.loadingDependencies) {
+            return;
+        }
+
+        this.loadingDependencies = true;
+
+        $.getScript('//youtube.com/iframe_api', function () {
+            window.onYouTubeIframeAPIReady = callback;
+        });
+    },
+
+    ready() {
+        this._render();
+        this.create();
+    },
 
     create() {
 
@@ -90,14 +101,13 @@ SplitPlayerVideo.youtube.prototype = {
 
     timeTo(time) {
 
+        console.log(this.videoPlayer.getPlayerState());
         if (time >= this.getDuration()) {
-            this.videoPlayer.seekTo(0);
+            this.stop();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 
         time = (time + this.settings.startSeconds);
-
-        console.log('set time to %s', time);
 
         this.videoPlayer.seekTo(time);
     },

@@ -39,9 +39,14 @@ var SplitPlayer = function (settings) {
         area: null,
         maxVideos: 4,
         volume: 100
-    }, settings) ;
+    }, settings);
 
-    this._loadVideoDependencies();
+    this._render();
+
+    /* add initial declared videos */
+    for (let video of this.settings.videos) {
+        this.addVideo(video);
+    }
 
     return this;
 };
@@ -61,33 +66,14 @@ SplitPlayer.prototype = {
         return _instance;
     },
 
-    /*
-     * Load Video Dependecnies like youtubeIframeApi
-     */
-    _loadVideoDependencies() {
-
-        if (this._dependenciesLoaded) {
-            return;
-        }
-
-        SplitPlayerVideo[this.settings.hoster].load(
-            this._onVideoDependeciesReady.bind(this)
-        );
-
-    },
-
     _onVideoDependeciesReady() {
 
-        this._dependenciesLoaded = true;
-
-        this._render();
+        this.playerStateIs = playerState.loading;
 
         /* add initial declared videos */
-        for (let video of this.settings.videos) {
-            this.addVideo(video);
+        for (let video of this.videos) {
+            video.ready();
         }
-
-        this.playerStateIs = playerState.loading;
 
         console.info('api loaded');
     },
@@ -99,9 +85,15 @@ SplitPlayer.prototype = {
             return console.info('video limit reached only %s allowed', this.settings.maxVideos);
         }
 
+        var current = new SplitPlayerVideo[video.hoster](this, video);
+
+        current.load(
+            this._onVideoDependeciesReady.bind(this)
+        );
+
         this.videos.push(
             // create hoster specific video instance
-            new SplitPlayerVideo[this.settings.hoster](this, video)
+            current
         );
 
     },
@@ -110,7 +102,7 @@ SplitPlayer.prototype = {
         // first remove video from player list
         var video = this.removeVideo(videoId);
 
-        // destory video him
+        // destory video
         video.destroy();
     },
 
@@ -214,6 +206,9 @@ SplitPlayer.prototype = {
 
     pause() {
 
+        // stop ticker
+        clearInterval(this.ticker);
+
         // abort if player not playing state
         if (this.playerStateIs === playerState.pause) {
             return console.info('allready pausing');
@@ -223,9 +218,6 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.pause();
         }
-
-        // stop ticker
-        clearInterval(this.ticker);
 
         // hook all plugins
         for (let Plugin of this.plugins) {
@@ -251,7 +243,10 @@ SplitPlayer.prototype = {
 
     stop() {
 
-        // abort if player not playing state
+        // stop ticker
+        clearInterval(this.ticker);
+
+        // abort if player not in playing state
         if (this.playerStateIs !== playerState.pause && this.playerStateIs !== playerState.playing) {
             return;
         }
@@ -260,9 +255,6 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.stop();
         }
-
-        // stop ticker
-        clearInterval(this.ticker);
 
         // hook all plugins
         for (let Plugin of this.plugins) {
@@ -312,33 +304,32 @@ SplitPlayer.prototype = {
 };
 
 
-/*
-this.playedTime = this.settings.startTime;
-
-$(this.settings.durationElement).html(this.formatTime(this.settings.duration));
-$(this.settings.currentTimeElement).html('0:00');
-*/
 /* globals $ */
 
 'use strict';
 
-var SplitPlayerTimeHud = function (timeline) {
+var SplitPlayerTimeDisplay = function (timeline) {
     this.timeline = timeline;
 
     this.template = '<i class="preview-line"><time></time></i>';
 
-    this._render();
+    //this._render();
     return this;
 };
 
-SplitPlayerTimeHud.prototype = {
+SplitPlayerTimeDisplay.prototype = {
 
     onReady() {
 
     },
 
     onUpdate() {
-        
+        /*
+        this.playedTime = this.settings.startTime;
+
+        $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
+        $(this.settings.currentTimeElement).html('0:00');
+        */
     },
 
 
@@ -353,26 +344,95 @@ SplitPlayerTimeHud.prototype = {
 
 'use strict';
 
-var SplitPlayerTimeline = function (player) {
-    this.player = player;
-    this.element = null;
-    this.bar = null;
-    this.isActive = false;
+var SplitPlayerTimeLine = function (timeManager, settings) {
+    this.timeManager = timeManager;
 
-    this.template = '<div id="timeline"><i class="bar"></i></div>';
+    // register timeline inside timeManager
+    this.timeManager.timeline = null;
+
+    this.bar = null;
+
+    // extend settings
+    this.settings = $.extend({}, this.timeManager.settings, {
+        template: '<div id="timeline"><i class="bar"></i></div>'
+    }, settings);
 
     this._render();
 
     return this;
 };
 
-SplitPlayerTimeline.prototype = {
+SplitPlayerTimeLine.prototype = {
+
+    /*
+     * player onReady hook
+     */
+    onReady() {
+        this.isActive = true;
+    },
+
+    /*
+     * player onStop hook
+     */
+    onStop() {
+        this._reset();
+    },
+
+    /*
+     * timeManager onSetTo hook
+     */
+    onSetTo(data) {
+        this.bar.css({
+            width: data.percentage + '%'
+        });
+    },
+
+    _reset() {
+        this.bar.css({
+            width: 0
+        });
+    },
+
+    _render() {
+        let dom = $(this.settings.area).append(this.settings.template);
+
+        this.timeManager.timeline = dom.find('#timeline');
+        this.bar = this.timeManager.timeline .find('i');
+    }
+};
+
+/* globals $ */
+
+'use strict';
+
+var SplitPlayerTimeManager = function (player, settings) {
+    this.player = player;
+
+    this.isActive = false;
+    this.seconds = 0;
+
+    this.plugins = [];
+
+    // extend player settings
+    this.settings = $.extend({}, this.player.settings, {
+    }, settings || {});
+
+    return this;
+};
+
+SplitPlayerTimeManager.prototype = {
 
     /*
      * extend Module
      */
     extend(Module) {
-        return this.player.plugins.push(new Module(this));
+        Module = new Module(this);
+
+        // push internal
+        this.plugins.push(Module);
+
+        // push to player plugins for other hooks
+        return this.player.plugins.push(Module);
     },
 
     /*
@@ -393,42 +453,48 @@ SplitPlayerTimeline.prototype = {
      * player onStop hook
      */
     onStop() {
-        this._reset();
+        this.seconds = 0;
     },
 
     /*
      * Set Time to
      */
     setTo(seconds) {
-        let percentage = ((seconds * 100) / this.player.duration);
+        this.seconds = seconds;
 
-        this.bar.css({
-            width: percentage + '%'
-        });
+        // plugin
+        for (let Plugin of this.plugins) {
+            if (Plugin.onSetTo) {
+                Plugin.onSetTo(this.getData());
+            }
+        }
     },
 
-    _reset() {
-        this.bar.css({
-            width: 0
-        });
+    getData() {
+        // get percentage
+        const percentage = ((this.seconds * 100) / this.player.duration);
+
+        // formatted seconds
+        const formattedTime = this._formatTime(this.seconds);
+
+        return {
+            seconds: this.seconds,
+            formattedTime: formattedTime,
+            percentage: percentage
+        };
     },
 
-    _formatTime(time) {
-        let minutes = Math.floor(time / 60);
-        let seconds = Math.round(time - minutes * 60);
+    _formatTime(timeInSeconds) {
+        // convert to minutes
+        let minutes = Math.floor(timeInSeconds / 60);
+        // get seconds;
+        let seconds = Math.round(timeInSeconds - minutes * 60);
 
         if (seconds < 10) {
             seconds = '0' + seconds;
         }
 
         return minutes + ':' + seconds;
-    },
-
-    _render() {
-        let tmp = $(this.player.settings.area).append(this.template);
-
-        this.element = $(tmp).find('#timeline');
-        this.bar = this.element.find('i');
     }
 };
 
@@ -436,59 +502,58 @@ SplitPlayerTimeline.prototype = {
 
 'use strict';
 
-var SplitPlayerTimePicker = function (timeline) {
-    this.timeline = timeline;
+var SplitPlayerTimePicker = function (timeManager, settings) {
+    this.timeManager = timeManager;
 
-    this.template = '<i class="preview-line"><time></time></i>';
+    this.timeline = this.timeManager.timeline;
+
     this.previewedTime = 0;
+
+    // extend settings
+    this.settings = $.extend({}, this.timeManager.settings, {
+        area: '#timeline',
+        template: '<i class="preview-line"><time></time></i>'
+    }, settings || {});
 
     this._render();
     this._setEvents();
+    
     return this;
 };
 
 SplitPlayerTimePicker.prototype = {
 
-    onReady() {
-
-
-    },
-
+    // set mousemove and click event
     _setEvents() {
-        this.timeline.element
+        this.timeline
             .on('mousemove', this._showTime.bind(this))
             .on('mouseup', this._setTime.bind(this));
     },
 
+    // show time on mousemove
     _showTime(e) {
-        let leftPos = (e.pageX - this.timeline.element.offset().left);
-        let percentage = ((leftPos * 100) / this.timeline.element.width());
-        this.previewedTime = ((this.timeline.player.duration / 100) * percentage);
 
-        this.previewLine.width(percentage + '%').find('time').html(this._formatTime(this.previewedTime));
+        let leftPos = (e.pageX - this.timeline.offset().left);
+
+        let percentage = ((leftPos * 100) / this.timeline.width());
+
+        this.previewedTime = ((this.timeManager.player.duration / 100) * percentage);
+
+        this.previewLine.width(percentage + '%').find('time').html(
+            this.timeManager._formatTime(this.previewedTime)
+        );
     },
 
+    // set time on click
     _setTime() {
-        this.timeline.player.stop();
-        this.timeline.player.timeTo(this.previewedTime);
-        this.timeline.setTo(this.previewedTime);
-        this.timeline.player.play();
-    },
-
-    _formatTime(time) {
-        var minutes = Math.floor(time / 60);
-        var seconds = Math.round(time - minutes * 60);
-
-        if (seconds < 10) {
-            seconds = '0' + seconds;
-        }
-
-        return minutes + ':' + seconds;
+        this.timeManager.player.stop();
+        this.timeManager.player.timeTo(this.previewedTime);
+        setTimeout(this.timeManager.player.play.bind(this.timeManager.player), 100);
     },
 
     _render() {
-        this.timeline.element.append(this.template);
-        this.previewLine = this.timeline.element.find('.preview-line');
+        this.timeline.append(this.settings.template);
+        this.previewLine = this.timeline.find('.preview-line');
     }
 
 };
@@ -512,19 +577,30 @@ SplitPlayerVideo.youtube = function (player, settings) {
 
     this.isMuted = this.settings.isMuted;
 
-    this._render();
-    this.create();
-
     return this;
 };
 
-SplitPlayerVideo.youtube.load = function (callback) {
-    $.getScript('//youtube.com/iframe_api', function () {
-        window.onYouTubeIframeAPIReady = callback;
-    });
-};
-
 SplitPlayerVideo.youtube.prototype = {
+
+    loadingDependencies: false,
+
+    load(callback) {
+
+        if (this.loadingDependencies) {
+            return;
+        }
+
+        this.loadingDependencies = true;
+
+        $.getScript('//youtube.com/iframe_api', function () {
+            window.onYouTubeIframeAPIReady = callback;
+        });
+    },
+
+    ready() {
+        this._render();
+        this.create();
+    },
 
     create() {
 
@@ -586,14 +662,13 @@ SplitPlayerVideo.youtube.prototype = {
 
     timeTo(time) {
 
+        console.log(this.videoPlayer.getPlayerState());
         if (time >= this.getDuration()) {
-            this.videoPlayer.seekTo(0);
+            this.stop();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 
         time = (time + this.settings.startSeconds);
-
-        console.log('set time to %s', time);
 
         this.videoPlayer.seekTo(time);
     },
