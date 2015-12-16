@@ -11,7 +11,7 @@ var SplitPlayerTimeDisplay = function (timeManager, settings) {
     // extend settings
     this.settings = $.extend({}, this.timeManager.settings, {
         area: null,
-        template: '<i class="time-display"><time class="current"></time><time class="duration"></time></i>'
+        template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
     }, settings);
 
     this._render();

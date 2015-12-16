@@ -605,7 +605,7 @@ var SplitPlayerTimeDisplay = function SplitPlayerTimeDisplay(timeManager, settin
     // extend settings
     this.settings = $.extend({}, this.timeManager.settings, {
         area: null,
-        template: '<i class="time-display"><time class="current"></time><time class="duration"></time></i>'
+        template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
     }, settings);
 
     this._render();
@@ -861,6 +861,11 @@ SplitPlayerTimePicker.prototype = {
 
         var percentage = leftPos * 100 / this.timeline.width();
 
+        // set to 0 if negative value
+        if (percentage < 0) {
+            percentage = 0;
+        }
+
         this.previewedTime = this.timeManager.player.duration / 100 * percentage;
 
         this.previewLine.width(percentage + '%').find('time').html(this.timeManager._formatTime(this.previewedTime));
@@ -870,6 +875,8 @@ SplitPlayerTimePicker.prototype = {
     _setTime: function _setTime() {
         this.timeManager.player.stop();
         this.timeManager.player.timeTo(this.previewedTime);
+
+        // wait for next tick
         setTimeout(this.timeManager.player.play.bind(this.timeManager.player), 100);
     },
 
