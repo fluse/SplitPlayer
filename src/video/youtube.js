@@ -8,12 +8,13 @@ SplitPlayerVideo.youtube = function (player, settings) {
     this.player = player;
     this.videoPlayer = null;
 
-    this.isSilent = false;
-
     this.settings = $.extend({
-        video: null,
-        type: 'youtube'
+        videoId: null,
+        startSeconds: 0,
+        isMuted: false
     }, settings);
+
+    this.isMuted = this.settings.isMuted;
 
     this.render();
     this.create();
@@ -31,11 +32,11 @@ SplitPlayerVideo.youtube.prototype = {
 
     create() {
 
-        this.videoPlayer = new YT.Player(this.settings.video.videoId, {
+        this.videoPlayer = new YT.Player(this.settings.videoId, {
             width: '100%',
             height: '100%',
-            videoId: this.settings.video.videoId,
-            startSeconds: this.settings.video.startSeconds,
+            videoId: this.settings.videoId,
+            startSeconds: this.settings.startSeconds,
             playerVars: {
                 'controls': 1
             },
@@ -48,16 +49,11 @@ SplitPlayerVideo.youtube.prototype = {
 
     onReady() {
         this.setPlayerDuration();
-        this.stop();
+        this.mute();
         this.player.onReady();
     },
 
     onStateChange(event) {
-
-        if (this.isSilence) {
-            return;
-        }
-        console.log(event.data);
 
         if (event.data === YT.PlayerState.BUFFERING) {
             return this.player.changeState(playerState.buffering);
@@ -65,11 +61,6 @@ SplitPlayerVideo.youtube.prototype = {
 
         if (event.data === YT.PlayerState.PLAYING) {
             return this.player.changeState(playerState.playing);
-        }
-
-        if (event.data === YT.PlayerState.ENDED) {
-            this.timeTo(0);
-            return this.player.changeState(event.data);
         }
 
         if (event.data === YT.PlayerState.PAUSED) {
@@ -84,30 +75,56 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     remove() {
-        this.player.removeVideo(this.settings.video);
         this.videoPlayer.destroy();
     },
 
     timeTo(time) {
-        debugger;
 
         if (this.getDuration() === 0) {
-            this.isSilent = true;
             this.stop();
-            this.isSilent = false;
             return;
         }
 
         if (time >= this.getDuration()) {
             this.videoPlayer.seekTo(0);
-            return console.info('time for %s out of range', this.settings.video.videoId);
+            return console.info('time for %s out of range', this.settings.videoId);
         }
 
-        time = (time + this.settings.video.startSeconds);
+        time = (time + this.settings.startSeconds);
 
         console.log('set time to %s', time);
 
         this.videoPlayer.seekTo(time);
+    },
+
+    volumeTo(percentage) {
+        if (this.isMuted) {
+            return false;
+        }
+
+        this.videoPlayer.setVolume(percentage);
+        return true;
+    },
+
+    mute() {
+        if (!this.isMuted) {
+            return false;
+        }
+
+        this.videoPlayer.mute();
+        this.isMuted = true;
+        return true;
+    },
+
+    unMute() {
+        if (!this.isMuted) {
+            return false;
+        }
+
+        this.isMuted = false;
+        this.volumeTo(this.player.settings.volume);
+
+        return true;
     },
 
     play() {
@@ -124,7 +141,7 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     getDuration() {
-        return this.videoPlayer.getDuration() - this.settings.video.startSeconds;
+        return this.videoPlayer.getDuration() - this.settings.startSeconds;
     },
 
     setPlayerDuration() {
@@ -137,16 +154,16 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     getPlayedTime() {
-        return this.videoPlayer.getCurrentTime() - this.settings.video.startSeconds;
+        return this.videoPlayer.getCurrentTime() - this.settings.startSeconds;
     },
 
     render() {
-        $('#SplitPlayer').append('<div id="' + this.settings.video.videoId + '"><div>');
+        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div>');
     },
 
     destroy() {
         // remove youtube video iframe
-        $('#' + this.settings.video.videoId).find('iframe').remove();
+        $('#' + this.settings.videoId).find('iframe').remove();
     }
 
 };

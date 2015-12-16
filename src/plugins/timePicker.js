@@ -7,20 +7,17 @@ var SplitPlayerTimePicker = function (timeline) {
 
     this.template = '<i class="preview-line"><time></time></i>';
     this.previewedTime = 0;
-    /*
-    this.playedTime = this.settings.startTime;
 
-    $(this.settings.durationElement).html(this.formatTime(this.settings.duration));
-    $(this.settings.currentTimeElement).html('0:00');
-    */
+    this._render();
+    this._setEvents();
     return this;
 };
 
 SplitPlayerTimePicker.prototype = {
 
     onReady() {
-        this.render();
-        this._setEvents();
+
+
     },
 
     _setEvents() {
@@ -39,7 +36,7 @@ SplitPlayerTimePicker.prototype = {
 
     _setTime() {
         this.timeline.player.pause();
-        this.timeline.player.timeTo(this.previewedTime);
+        //this.timeline.player.timeTo(this.previewedTime);
         this.timeline.setTo(this.previewedTime);
         this.timeline.player.play();
     },
@@ -55,7 +52,7 @@ SplitPlayerTimePicker.prototype = {
         return minutes + ':' + seconds;
     },
 
-    render() {
+    _render() {
         this.timeline.element.append(this.template);
         this.previewLine = this.timeline.element.find('.preview-line');
     }

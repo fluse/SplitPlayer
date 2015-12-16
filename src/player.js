@@ -37,7 +37,8 @@ var SplitPlayer = function (settings) {
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 4
+        maxVideos: 4,
+        volume: 100
     }, settings) ;
 
     this._loadVideoDependencies();
@@ -100,9 +101,7 @@ SplitPlayer.prototype = {
 
         this.videos.push(
             // create hoster specific video instance
-            new SplitPlayerVideo[this.settings.hoster](this, {
-                video: video
-            })
+            new SplitPlayerVideo[this.settings.hoster](this, video)
         );
 
     },
@@ -143,7 +142,8 @@ SplitPlayer.prototype = {
         if (this.readyCount !== this.videos.length) {
             return console.info('videos not ready yet');
         }
-
+        this.play();
+        this.pause();
         this.playerStateIs = playerState.ready;
 
         // hook onReady for plugins
@@ -164,17 +164,6 @@ SplitPlayer.prototype = {
     },
 
     changeState(state) {
-
-        if (this.isFreezed) {
-            return false;
-        }
-
-        console.info('state changed to %s', state);
-
-        // prevent if not all videos ready
-        if (this.readyCount !== this.videos.length) {
-            return false;
-        }
 
         if (state === playerState.buffering) {
             return this.pause();
@@ -212,10 +201,6 @@ SplitPlayer.prototype = {
     },
 
     pause() {
-        // abort if not all videos ready
-        if (this.readyCount !== this.videos.length) {
-            return console.info('pause not ready yet');
-        }
 
         // abort if player not playing state
         if (this.playerStateIs === playerState.pause) {
@@ -253,13 +238,9 @@ SplitPlayer.prototype = {
     },
 
     stop() {
-        // abort if not all videos ready
-        if (this.readyCount !== this.videos.length) {
-            return console.info('stop not ready yet');
-        }
 
         // abort if player not playing state
-        if (this.playerStateIs === playerState.unstarted) {
+        if (this.playerStateIs !== playerState.pause && this.playerStateIs !== playerState.playing) {
             return;
         }
 
@@ -289,6 +270,13 @@ SplitPlayer.prototype = {
         }
     },
 
+    volumeTo(percentage) {
+        this.settings.volume = percentage;
+        for (let video of this.videos) {
+            video.volumeTo(percentage);
+        }
+    },
+
     _videosInState(state) {
         let inState = true;
         for (let video of this.videos) {
@@ -305,7 +293,7 @@ SplitPlayer.prototype = {
             return console.info('no html parent defined', this.settings.area);
         }
 
-        $(this.settings.area).html('<div id="SplitPlayer"></div>');
+        $(this.settings.area).prepend('<div id="SplitPlayer"></div>');
 
     }
 

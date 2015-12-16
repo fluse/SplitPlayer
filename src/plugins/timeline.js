@@ -4,11 +4,13 @@
 
 var SplitPlayerTimeline = function (player) {
     this.player = player;
-
     this.element = null;
     this.bar = null;
+    this.isActive = false;
 
     this.template = '<div id="timeline"><i class="bar"></i></div>';
+
+    this._render();
 
     return this;
 };
@@ -26,7 +28,7 @@ SplitPlayerTimeline.prototype = {
      * player onReady hook
      */
     onReady() {
-        this._render();
+        this.isActive = true;
     },
 
     /*
@@ -48,6 +50,7 @@ SplitPlayerTimeline.prototype = {
      */
     setTo(seconds) {
         let percentage = ((seconds * 100) / this.player.duration);
+
         this.bar.css({
             width: percentage + '%'
         });
@@ -72,7 +75,8 @@ SplitPlayerTimeline.prototype = {
 
     _render() {
         let tmp = $(this.player.settings.area).append(this.template);
-        this.element = tmp.find('#timeline');
+
+        this.element = $(tmp).find('#timeline');
         this.bar = this.element.find('i');
     }
 };

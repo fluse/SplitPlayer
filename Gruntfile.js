@@ -18,7 +18,7 @@ module.exports = function (grunt) {
         },
         babel: {
             options: {
-                sourceMap: true,
+                sourceMap: false,
                 stage: 2
             },
             dist: {
