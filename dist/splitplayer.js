@@ -3,6 +3,9 @@
 'use strict';
 
 // player state constants
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
 var playerState = {
     unstarted: -1,
     ended: 0,
@@ -47,10 +50,6 @@ var SplitPlayer = function SplitPlayer(settings) {
 };
 
 SplitPlayer.prototype = {
-
-    getPlayedTime: function getPlayedTime() {
-        return 0;
-    },
 
     /*
      * add Plugins
@@ -255,7 +254,8 @@ SplitPlayer.prototype = {
     changeState: function changeState(state) {
 
         if (state === playerState.buffering) {
-            return this.pause();
+            // pause causes trouble here
+            // return this.pause();
         }
 
         if (state === playerState.pause) {
@@ -272,6 +272,8 @@ SplitPlayer.prototype = {
         // start ticker
         this.ticker = window.setInterval(this.onUpdate.bind(this), 500);
 
+        var playedTime = this.getPlayedTime();
+
         var _iteratorNormalCompletion5 = true;
         var _didIteratorError5 = false;
         var _iteratorError5 = undefined;
@@ -280,7 +282,9 @@ SplitPlayer.prototype = {
             for (var _iterator5 = this.videos[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
                 var video = _step5.value;
 
-                video.play();
+                if (video.getDuration() >= playedTime) {
+                    video.play();
+                }
             }
 
             // hook onPlay for plugins
@@ -427,7 +431,9 @@ SplitPlayer.prototype = {
             for (var _iterator9 = this.videos[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
                 var video = _step9.value;
 
-                video.stop();
+                if (video.getPlayerState() !== 0) {
+                    video.stop();
+                }
             }
 
             // stop ticker
@@ -506,6 +512,14 @@ SplitPlayer.prototype = {
                 }
             }
         }
+    },
+
+    getPlayedTime: function getPlayedTime() {
+        var times = this.videos.map(function (v) {
+            return v.getpPlayedTime();
+        });
+
+        return Math.max.apply(Math, _toConsumableArray(times));
     },
 
     volumeTo: function volumeTo(percentage) {
@@ -725,10 +739,8 @@ SplitPlayerTimePicker.prototype = {
     },
 
     _setTime: function _setTime() {
-        this.timeline.player.stop();
         this.timeline.player.timeTo(this.previewedTime);
         this.timeline.setTo(this.previewedTime);
-        this.timeline.player.play();
     },
 
     _formatTime: function _formatTime(time) {
@@ -842,7 +854,7 @@ SplitPlayerVideo.youtube.prototype = {
     timeTo: function timeTo(time) {
 
         if (time >= this.getDuration()) {
-            this.videoPlayer.seekTo(0);
+            this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 

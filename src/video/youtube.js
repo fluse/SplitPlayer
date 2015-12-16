@@ -91,7 +91,7 @@ SplitPlayerVideo.youtube.prototype = {
     timeTo(time) {
 
         if (time >= this.getDuration()) {
-            this.videoPlayer.seekTo(0);
+            this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 

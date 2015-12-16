@@ -48,10 +48,6 @@ var SplitPlayer = function (settings) {
 
 SplitPlayer.prototype = {
 
-    getPlayedTime () {
-        return 0;
-    },
-
     /*
      * add Plugins
      */
@@ -178,7 +174,8 @@ SplitPlayer.prototype = {
     changeState(state) {
 
         if (state === playerState.buffering) {
-            return this.pause();
+            // pause causes trouble here
+            // return this.pause();
         }
 
         if (state === playerState.pause) {
@@ -196,8 +193,12 @@ SplitPlayer.prototype = {
         // start ticker
         this.ticker = window.setInterval(this.onUpdate.bind(this), 500);
 
+        let playedTime = this.getPlayedTime();
+
         for (let video of this.videos) {
-            video.play();
+            if (video.getDuration() >= playedTime) {
+                video.play();
+            }
         }
 
         // hook onPlay for plugins
@@ -258,7 +259,9 @@ SplitPlayer.prototype = {
 
         // pause all videos
         for (let video of this.videos) {
-            video.stop();
+            if (video.getPlayerState() !== 0) {
+                video.stop();
+            }
         }
 
         // stop ticker
@@ -280,6 +283,12 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.timeTo(time);
         }
+    },
+
+    getPlayedTime() {
+        let times = this.videos.map(v => v.getpPlayedTime());
+
+        return Math.max(...times);
     },
 
     volumeTo(percentage) {
