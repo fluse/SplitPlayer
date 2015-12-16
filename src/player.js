@@ -98,6 +98,13 @@ SplitPlayer.prototype = {
 
     },
 
+    getVideo(videoId) {
+        // get video from array
+        return _.find(this.videos, function(video) {
+            return video.settings.videoId === videoId;
+        });
+    },
+
     destroyVideo(videoId) {
         // first remove video from player list
         var video = this.removeVideo(videoId);
@@ -108,10 +115,7 @@ SplitPlayer.prototype = {
 
     removeVideo(videoId) {
 
-        // get video from array
-        var video = _.find(this.videos, function(video) {
-            return video.settings.videoId === videoId;
-        });
+        var video = this.getVideo(videoId);
 
         // if there is a video
         if (!video) {

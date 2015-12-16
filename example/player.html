@@ -114,7 +114,7 @@
                 videoId: 'AxbqLXByD2U',
                 hoster: 'youtube',
                 startSeconds: 12.1,
-                isMuted: false
+                isMuted: true
             }, {
                 videoId: 'QfrUodC2pbg',
                 hoster: 'youtube',
@@ -134,7 +134,7 @@
                 videoId: 'P5qpMS0KLLs',
                 hoster: 'youtube',
                 startSeconds: 0,
-                isMuted: true
+                isMuted: false
             },{
                 videoId: '98yG9ISa8ZA',
                 hoster: 'youtube',
@@ -148,6 +148,7 @@
             });
 
             var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+            var playerSoundManager = player.addPlugin(SplitPlayerSoundManager);
 
             // add timeline
             playerTimeManager.extend(SplitPlayerTimeLine, {
