@@ -1,5 +1,14 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: Arial, sans-serif;
+}
+
 #SplitPlayer {
     display: flex;
+    padding: 3em 0;
+    background-color: #000;
 }
 #SplitPlayer * {
     flex: 1;
@@ -46,8 +55,26 @@
 }
 
 #splitPlayerController {
+    float: left;
     text-align: center;
+    display: block;
+    width: 100%;
+    padding: .5em;
 }
+
+#splitPlayerController span {
+    padding: .5em;
+    border: 2px;
+    cursor: pointer;
+    margin: 0 .1em;
+    display: inline-block;
+    background-color: rgb(200, 207, 204);
+}
+
+#splitPlayerController span:hover {
+    opacity: 0.8;
+}
+
 .no-video {
     position: absolute;
     top: 0;
@@ -55,16 +82,28 @@
     right: 0;
     bottom: 0;
 }
+
 .grd-1 {
+    float: left;
     display: block;
     width: 100%;
 }
 
 #playerTimeDisplay {
-    float: left;
-    width: 15%;
+    text-align: center;
+    padding: .5em;
 }
+
+#playerTimeDisplay time {
+    padding: 0 .2em;
+    font-style: normal;
+}
+
+#playerTimeDisplay time:first-child:after {
+    content: '/';
+    padding-left: .4em;
+}
+
 #playerTimeline {
-    float: right;
-    width: 85%;
+    padding: .5em;
 }
