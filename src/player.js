@@ -73,8 +73,22 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.ready();
         }
+        this._dependenciesLoaded = true;
 
         console.info('api loaded');
+    },
+
+    addVideos(videos) {
+        for (let video of videos) {
+            this.addVideo(video);
+        }
+
+        if (this._dependenciesLoaded) {
+            for (let video of this.videos) {
+                video.ready();
+            }
+        }
+        return this;
     },
 
     addVideo(video) {
@@ -101,6 +115,7 @@ SplitPlayer.prototype = {
             current
         );
 
+        return this;
     },
 
     getVideo(videoId) {
@@ -110,7 +125,7 @@ SplitPlayer.prototype = {
         });
     },
 
-    // remove all videos and player himself
+    // destroy all videos and player himself
     destroy() {
         for (let video of this.videos) {
             this.destroyVideo(video.settings.videoId);
@@ -129,6 +144,12 @@ SplitPlayer.prototype = {
 
         // destory video
         video.destroy();
+    },
+
+    emptyPlayer() {
+        for (let video of this.videos) {
+            this.destroyVideo(video.settings.videoId);
+        }
     },
 
     removeVideo(videoId) {
@@ -223,7 +244,9 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.playing;
 
-        return console.info('playing');
+        console.info('playing');
+
+        return this;
     },
 
     pause() {
@@ -250,7 +273,9 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.pause;
 
-        return console.info('pause');
+        console.info('pause');
+
+        return this;
     },
 
     /*
@@ -287,13 +312,16 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.unstarted;
 
-        return console.info('stopped');
+        console.info('stopped');
+
+        return this;
     },
 
     timeTo(time) {
         for (let video of this.videos) {
             video.timeTo(time);
         }
+        return this;
     },
 
     volumeTo(percentage) {
@@ -312,6 +340,7 @@ SplitPlayer.prototype = {
             video.volumeTo(percentage);
         }
 
+        return this;
     },
 
     getPlayedTime() {

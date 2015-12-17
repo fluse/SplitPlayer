@@ -4,22 +4,23 @@ SplitPlayer is a high flexible extendable Video Player, that keeps multiple yout
 
 you can see an productive integration on http://splitplay.tv
 
+example on http://player.splitplay.tv
+
 ## Installation and Usage
 
 ```shell
 npm install splitplayer
 ```
 
-include the splitplayer javascript. you can choice between
-
-- unpacked
-- minified
-- standalone (included underscoreJS and jQuery)
+include one of these following splitplayer javascript into your page:
 
 ```html
+<!-- unpacked -->
 <script src="/dist/splitplayer.js"></script>
+<!-- minified -->
 <script src="/dist/splitplayer.min.js"></script>
-<script src="/dist/splitplayer.standalone.js"></script>
+<!-- standalone (included dependencies underscoreJS and jQuery) -->
+<script src="/dist/splitplayer.standalone.min.js"></script>
 ```
 
 ## create player
@@ -47,10 +48,9 @@ var options = {
 var videoList = [{options}, {options}, {options}];
 
 var player = new SplitPlayer(options, videoList);
-
 ```
 
-### add single video
+### add single video after player creation
 
 ```javascript
 // create new player
@@ -69,7 +69,6 @@ var video = {
     startSeconds: Number, // 1.2 float support
     isMuted: Boolean
 }
-
 ```
 
 #### add plugin
@@ -80,6 +79,8 @@ var player = new SplitPlayer(options);
 var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
 ```
+
+`addPlugin()` return the created instance of given plugin
 
 #### add plugin and extend plugin with modules
 
@@ -92,8 +93,9 @@ var player = new SplitPlayer(options);
 var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
 playerTimeManager.extend(SplitPlayerTimePicker);
-
 ```
+
+`extend()` return the created instance of given module
 
 #### available time Plugins
 
@@ -127,6 +129,8 @@ hooks are used to connect plugins to player behavior
 - onUpdate
 
 ### Public Methods
+
+these methods can be used outside
 
 #### play()
 
@@ -192,15 +196,24 @@ get current played time in seconds
 return seconds = player.getPlayedTime();
 ```
 
-## restriction and licence
+#### all public methods can be chained
 
-you can use this player only for non commercial products and websites.
+```javascript
+player.play().stop().pause().volumeTo(0).timeTo(10).toggle();
+```
 
 #### Supported Hoster
 - Youtube
 - Vimeo (planned)
 - Native (planned)
 
-## dependencies
+## Dependencies
 - jQuery > 1.8
 - underscoreJS
+
+## Browser Support
+- IE
+
+## restriction and licence
+
+you can use this player only for non commercial products and websites.
