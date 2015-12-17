@@ -11551,10 +11551,15 @@ var SplitPlayerSoundManager = function SplitPlayerSoundManager(player, settings)
 
     // extend settings
     this.settings = $.extend({}, this.player.settings, {
+        sound: {
+            min: 0,
+            max: 100,
+            'default': 100
+        },
         area: null,
-        template: '<i class="preview-line"><time></time></i>'
+        template: '<input class="volume-slider" type="range" min="%min%" max="%max%" value="%default%" />'
     }, settings || {});
-    return;
+
     this._render();
     this._setEvents();
 
@@ -11565,42 +11570,27 @@ SplitPlayerSoundManager.prototype = {
 
     // set mousemove and click event
     _setEvents: function _setEvents() {
-        this.$volume.on('change', this._setSound.bind(this));
+        this.$volume.on('change', this.setVolume.bind(this));
     },
 
-    // show time on mousemove
-    _showTime: function _showTime(e) {
-
-        var leftPos = e.pageX - this.timeline.offset().left;
-
-        var percentage = leftPos * 100 / this.timeline.width();
-
-        // set to 0 if negative value
-        if (percentage < 0) {
-            percentage = 0;
-        }
-
-        this.previewedTime = this.timeManager.player.duration / 100 * percentage;
-
-        this.previewLine.width(percentage + '%').find('time').html(this.timeManager._formatTime(this.previewedTime));
-    },
-
-    // set time on click
-    _setTime: function _setTime() {
-        this.timeManager.player.stop();
-        this.timeManager.player.timeTo(this.previewedTime);
-
-        // wait for next tick
-        setTimeout(this.timeManager.player.play.bind(this.timeManager.player), 100);
+    setVolume: function setVolume(event) {
+        this.player.volumeTo($(event.target).val());
     },
 
     _render: function _render() {
         if (this.settings.area === null) {
-            return console.error('no dropArea for timeDisplay defined');
+            return console.error('no dropArea for soundManager defined');
         }
 
-        this.settings.area.append(this.settings.template);
-        this.previewLine = this.timeline.find('.preview-line');
+        var template = this.settings.template;
+
+        // replace params
+        for (var placeholder in this.settings.sound) {
+            template = template.replace(':' + placeholder, this.settings.sound[placeholder]);
+        }
+
+        $(this.settings.area).append(template);
+        this.$volume = $(this.settings.area).find('.volume-slider');
     }
 
 };

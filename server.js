@@ -10,4 +10,7 @@ app.get('/', function(req, res) {
 app.use('/dist', express.static('dist'));
 app.use('/', express.static('example'));
 
-app.listen((typeof process.env.PORT !== 'undefined') ? process.env.PORT : 4711);
+var port = (typeof process.env.PORT !== 'undefined') ? process.env.PORT : 4711;
+app.listen(port);
+
+console.log('serving on port %s', port);

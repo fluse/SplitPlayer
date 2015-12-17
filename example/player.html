@@ -31,7 +31,6 @@
 
             <span onclick="player.emptyPlayer()">empty player</span>
             <span onclick="player.addVideos(videos)">add videos</span>
-            <input type="range" min="0" max="100" value="100" onChange="setVolume(this)" />
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
@@ -79,7 +78,10 @@
             });
 
             var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
-            var playerSoundManager = player.addPlugin(SplitPlayerSoundManager);
+
+            var playerSoundManager = player.addPlugin(SplitPlayerSoundManager, {
+                area: '#splitPlayerController'
+            });
 
             // add timeline
             playerTimeManager.extend(SplitPlayerTimeLine, {
