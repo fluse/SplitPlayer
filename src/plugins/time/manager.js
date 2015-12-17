@@ -1,4 +1,4 @@
-/* globals $ */
+/* globals $, extend */
 
 'use strict';
 

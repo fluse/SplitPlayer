@@ -1,4 +1,4 @@
-/* globals $ */
+/* globals $, extend */
 
 'use strict';
 
@@ -9,7 +9,7 @@ var SplitPlayerTimeDisplay = function (timeManager, settings) {
     this.$current = null;
 
     // extend settings
-    this.settings = $.extend({}, this.timeManager.settings, {
+    this.settings = extend({}, this.timeManager.settings, {
         area: null,
         template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
     }, settings);
@@ -39,6 +39,10 @@ SplitPlayerTimeDisplay.prototype = {
 
         this.$duration = this.$display.find('.duration');
         this.$current = this.$display.find('.current');
+    },
+
+    destroy() {
+        this.$display.remove();
     }
 
 };

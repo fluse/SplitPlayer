@@ -3,82 +3,11 @@
 
     <head>
         <title>SplitPlayer Example</title>
+
+        <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
-
-        <style>
-            #SplitPlayer {
-                display: flex;
-            }
-            #SplitPlayer * {
-                flex: 1;
-            }
-
-            #SplitPlayer > * {
-                position: relative;
-                background: #000;
-            }
-
-            #timeline {
-                width: 100%;
-                position: relative;
-                height: 20px;
-                background: #efefef;
-            }
-
-            #timeline i {
-                position: absolute;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                background: #e8a040;
-            }
-
-            #timeline .preview-line {
-                display: none;
-                position: absolute;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                background: #f7c27a;
-            }
-
-            #timeline:hover .preview-line {
-                display: block;
-            }
-
-            #timeline .preview-line time {
-                position: absolute;
-                right: 0;
-                bottom: 0;
-
-            }
-
-            #splitPlayerController {
-                text-align: center;
-            }
-            .no-video {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-            }
-            .grd-1 {
-                display: block;
-                width: 100%;
-            }
-
-            #playerTimeDisplay {
-                float: left;
-                width: 15%;
-            }
-            #playerTimeline {
-                float: right;
-                width: 85%;
-            }
-        </style>
 
         <div id="videoPlayer">
         </div>
@@ -91,7 +20,6 @@
 
             </div>
         </div>
-
 
         <div id="splitPlayerController">
 

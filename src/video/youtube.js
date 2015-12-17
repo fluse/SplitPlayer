@@ -8,7 +8,7 @@ SplitPlayerVideo.youtube = function (player, settings) {
     this.player = player;
     this.videoPlayer = null;
 
-    this.settings = $.extend({
+    this.settings = extend({
         videoId: null,
         startSeconds: 0,
         isMuted: false

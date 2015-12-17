@@ -1,4 +1,4 @@
-/* globals _, $, SplitPlayerVideo */
+/* globals _, extend, SplitPlayerVideo */
 
 'use strict';
 
@@ -18,6 +18,8 @@ var SplitPlayer = function (settings) {
 
     this.readyCount = 0;
 
+    this.$dom = null;
+
     // video instances container
     this.videos = [];
 
@@ -33,12 +35,13 @@ var SplitPlayer = function (settings) {
     // dependencie loading status
     this._dependenciesLoaded = false;
 
-    this.settings = $.extend({
+    this.settings = extend({
         hoster: 'youtube',
         videos: [],
         area: null,
         maxVideos: 6,
-        volume: 100
+        volume: 100,
+        template: '<div id="SplitPlayer"></div>'
     }, settings);
 
     this._render();
@@ -53,24 +56,20 @@ var SplitPlayer = function (settings) {
 
 SplitPlayer.prototype = {
 
-    getPlayedTime () {
-        return 0;
-    },
-
     /*
      * add Plugins
      */
-    addPlugin (Plugin) {
-        let _instance = new Plugin(this);
+    addPlugin(Plugin, settings) {
+        let _instance = new Plugin(this, settings || {});
         this.plugins.push(_instance);
         return _instance;
     },
 
     _onVideoDependeciesReady() {
-
+        // set loading state
         this.playerStateIs = playerState.loading;
 
-        /* add initial declared videos */
+        // call all dependencie loaded hook
         for (let video of this.videos) {
             video.ready();
         }
@@ -82,17 +81,23 @@ SplitPlayer.prototype = {
 
         // max videos check
         if (this.videos.length >= this.settings.maxVideos) {
-            return console.info('video limit reached only %s allowed', this.settings.maxVideos);
+            return console.error('video limit reached only %s allowed', this.settings.maxVideos);
+        }
+
+        // check video hoster supported
+        if (!SplitPlayerVideo.hasOwnProperty(video.hoster)) {
+            return console.error('video hoster %s not available', video.hoster);
         }
 
         var current = new SplitPlayerVideo[video.hoster](this, video);
 
+        // load dependencies
         current.load(
             this._onVideoDependeciesReady.bind(this)
         );
 
+        // create hoster specific video instance
         this.videos.push(
-            // create hoster specific video instance
             current
         );
 
@@ -103,6 +108,19 @@ SplitPlayer.prototype = {
         return _.find(this.videos, function(video) {
             return video.settings.videoId === videoId;
         });
+    },
+
+    // remove all videos and player himself
+    destroy() {
+        for (let video of this.videos) {
+            this.destroyVideo(video.settings.videoId);
+        }
+
+        for (let Plugin of this.plugins) {
+            if (Plugin.destroy) {
+                Plugin.destroy();
+            }
+        }
     },
 
     destroyVideo(videoId) {
@@ -279,10 +297,25 @@ SplitPlayer.prototype = {
     },
 
     volumeTo(percentage) {
+
+        if (percentage > 100) {
+            percentage = 100;
+        }
+
+        else if (percentage < 0) {
+            percentage = 0;
+        }
+
         this.settings.volume = percentage;
+
         for (let video of this.videos) {
             video.volumeTo(percentage);
         }
+
+    },
+
+    getPlayedTime() {
+        return 0;
     },
 
     _videosInState(state) {
@@ -301,8 +334,7 @@ SplitPlayer.prototype = {
             return console.info('no html parent defined', this.settings.area);
         }
 
-        $(this.settings.area).prepend('<div id="SplitPlayer"></div>');
-
+        this.$dom = $(this.settings.area).prepend(this.settings.template);
     }
 
 };
