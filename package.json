@@ -32,7 +32,7 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "prestart": "npm install && grunt deploy",
+    "prestart": "npm install",
     "start": "node server.js",
     "dev": "nodemon",
     "watch": "grunt watch"
