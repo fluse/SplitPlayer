@@ -1,4 +1,4 @@
-/* splitplayer 1.0.1 - http://www.splitplay.tv - copyright Holger Schauf */
+/* splitplayer 1.0.3 - http://www.splitplay.tv - copyright Holger Schauf */
 'use strict';
 
 var extend = function extend(out) {

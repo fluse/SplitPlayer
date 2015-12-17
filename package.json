@@ -3,7 +3,7 @@
   "author": "Holger Schauf",
   "website": "http://www.splitplay.tv",
   "private": false,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "node": "4.1.0"
   },
@@ -16,12 +16,7 @@
     "type": "git",
     "url": "https://github.com/fluse/splitplayer"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT"
-    }
-  ],
+  "license": "MIT",
   "dependencies": {
     "express": "^4.13.3",
     "grunt": "^0.4.5",
