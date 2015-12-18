@@ -1,4 +1,4 @@
-/* globals _, extend, SplitPlayerVideo */
+/* globals _, extend, Ticker, SplitPlayerVideo */
 
 'use strict';
 
@@ -30,7 +30,7 @@ var SplitPlayer = function (settings) {
     this.playerStateIs = playerState.inactive;
 
     // ticker for onUpdate interval
-    this.ticker = null;
+    this.ticker = new Ticker(this.onUpdate.bind(this), 500);
 
     // dependencie loading status
     this._dependenciesLoaded = false;
@@ -131,6 +131,8 @@ SplitPlayer.prototype = {
             this.destroyVideo(video.settings.videoId);
         }
 
+        this.duration = 0;
+
         for (let Plugin of this.plugins) {
             if (Plugin.destroy) {
                 Plugin.destroy();
@@ -230,7 +232,7 @@ SplitPlayer.prototype = {
     play() {
 
         // start ticker
-        this.ticker = window.setInterval(this.onUpdate.bind(this), 500);
+        this.ticker.start();
 
         let times = this.videos.map(v => v.getPlayedTime());
         let playedTime =  Math.max(...times);
@@ -250,15 +252,13 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.playing;
 
-        console.info('playing');
-
         return this;
     },
 
     pause() {
 
         // stop ticker
-        clearInterval(this.ticker);
+        this.ticker.stop();
 
         // abort if player not playing state
         if (this.playerStateIs === playerState.pause) {
@@ -279,8 +279,6 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.pause;
 
-        console.info('pause');
-
         return this;
     },
 
@@ -297,7 +295,7 @@ SplitPlayer.prototype = {
     stop() {
 
         // stop ticker
-        clearInterval(this.ticker);
+        this.ticker.stop();
 
         // abort if player not in playing state
         if (this.playerStateIs !== playerState.pause && this.playerStateIs !== playerState.playing) {
@@ -319,8 +317,6 @@ SplitPlayer.prototype = {
         }
 
         this.playerStateIs = playerState.unstarted;
-
-        console.info('stopped');
 
         return this;
     },

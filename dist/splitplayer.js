@@ -17,7 +17,40 @@ var extend = function extend(out) {
     return out;
 };
 
-/* globals _, extend, SplitPlayerVideo */
+var Ticker = function Ticker(callback, interval) {
+    this.isActive = false;
+    this.cycler = null;
+
+    this.callback = callback;
+    this.interval = interval;
+};
+
+Ticker.prototype = {
+
+    start: function start() {
+        this.isActive = true;
+        this['do']();
+    },
+
+    'do': function _do() {
+
+        if (!this.isActive) {
+            return false;
+        }
+
+        this.callback();
+
+        this.cycler = window.setTimeout(this['do'].bind(this), this.interval);
+    },
+
+    stop: function stop() {
+        this.isActive = false;
+
+        clearTimeout(this.cycler);
+    }
+};
+
+/* globals _, extend, Ticker, SplitPlayerVideo */
 
 'use strict';
 
@@ -49,7 +82,7 @@ var SplitPlayer = function SplitPlayer(settings) {
     this.playerStateIs = playerState.inactive;
 
     // ticker for onUpdate interval
-    this.ticker = null;
+    this.ticker = new Ticker(this.onUpdate.bind(this), 500);
 
     // dependencie loading status
     this._dependenciesLoaded = false;
@@ -252,6 +285,8 @@ SplitPlayer.prototype = {
             }
         }
 
+        this.duration = 0;
+
         var _iteratorNormalCompletion6 = true;
         var _didIteratorError6 = false;
         var _iteratorError6 = undefined;
@@ -453,7 +488,7 @@ SplitPlayer.prototype = {
     play: function play() {
 
         // start ticker
-        this.ticker = window.setInterval(this.onUpdate.bind(this), 500);
+        this.ticker.start();
 
         var times = this.videos.map(function (v) {
             return v.getPlayedTime();
@@ -518,15 +553,13 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.playing;
 
-        console.info('playing');
-
         return this;
     },
 
     pause: function pause() {
 
         // stop ticker
-        clearInterval(this.ticker);
+        this.ticker.stop();
 
         // abort if player not playing state
         if (this.playerStateIs === playerState.pause) {
@@ -590,8 +623,6 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.pause;
 
-        console.info('pause');
-
         return this;
     },
 
@@ -608,7 +639,7 @@ SplitPlayer.prototype = {
     stop: function stop() {
 
         // stop ticker
-        clearInterval(this.ticker);
+        this.ticker.stop();
 
         // abort if player not in playing state
         if (this.playerStateIs !== playerState.pause && this.playerStateIs !== playerState.playing) {
@@ -673,8 +704,6 @@ SplitPlayer.prototype = {
         }
 
         this.playerStateIs = playerState.unstarted;
-
-        console.info('stopped');
 
         return this;
     },
@@ -815,6 +844,61 @@ var SplitPlayerSoundManager = function SplitPlayerSoundManager(player, settings)
 };
 
 SplitPlayerSoundManager.prototype = {
+
+    // set mousemove and click event
+    _setEvents: function _setEvents() {
+        this.$volume.on('change', this.setVolume.bind(this));
+    },
+
+    setVolume: function setVolume(event) {
+        this.player.volumeTo($(event.target).val());
+    },
+
+    _render: function _render() {
+        if (this.settings.area === null) {
+            return console.error('no dropArea for soundManager defined');
+        }
+
+        var template = this.settings.template;
+
+        // replace params
+        for (var placeholder in this.settings.sound) {
+            template = template.replace(':' + placeholder, this.settings.sound[placeholder]);
+        }
+
+        $(this.settings.area).append(template);
+        this.$volume = $(this.settings.area).find('.volume-slider');
+    }
+
+};
+
+/* globals $ */
+
+'use strict';
+
+var SplitPlayerSoundSelector = function SplitPlayerSoundSelector(player, settings) {
+    this.player = player;
+
+    this.$volume = null;
+
+    // extend settings
+    this.settings = $.extend({}, this.player.settings, {
+        sound: {
+            min: 0,
+            max: 100,
+            'default': 100
+        },
+        area: null,
+        template: '<input class="volume-slider" type="range" min="%min%" max="%max%" value="%default%" />'
+    }, settings || {});
+
+    this._render();
+    this._setEvents();
+
+    return this;
+};
+
+SplitPlayerSoundSelector.prototype = {
 
     // set mousemove and click event
     _setEvents: function _setEvents() {
@@ -1016,7 +1100,7 @@ SplitPlayerTimeManager.prototype = {
      */
     setTo: function setTo(playedTime) {
         this.playedTime = playedTime;
-
+        console.log(playedTime);
         // plugin
         var _iteratorNormalCompletion20 = true;
         var _didIteratorError20 = false;
@@ -1080,6 +1164,10 @@ SplitPlayerTimeManager.prototype = {
         }
 
         return minutes + ':' + playedTime;
+    },
+
+    destroy: function destroy() {
+        this.onStop();
     }
 };
 

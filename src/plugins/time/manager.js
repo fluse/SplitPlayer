@@ -58,7 +58,7 @@ SplitPlayerTimeManager.prototype = {
      */
     setTo(playedTime) {
         this.playedTime = playedTime;
-
+        console.log(playedTime);
         // plugin
         for (let Plugin of this.plugins) {
             if (Plugin.onSetTo) {
@@ -101,5 +101,9 @@ SplitPlayerTimeManager.prototype = {
         }
 
         return minutes + ':' + playedTime;
+    },
+
+    destroy() {
+        this.onStop();
     }
 };
