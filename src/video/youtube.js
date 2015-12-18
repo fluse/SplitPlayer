@@ -8,7 +8,7 @@ SplitPlayerVideo.youtube = function (player, settings) {
     this.player = player;
     this.videoPlayer = null;
 
-    this.settings = $.extend({
+    this.settings = extend({
         videoId: null,
         startSeconds: 0,
         isMuted: false
@@ -16,19 +16,30 @@ SplitPlayerVideo.youtube = function (player, settings) {
 
     this.isMuted = this.settings.isMuted;
 
-    this._render();
-    this.create();
-
     return this;
 };
 
-SplitPlayerVideo.youtube.load = function (callback) {
-    $.getScript('//youtube.com/iframe_api', function () {
-        window.onYouTubeIframeAPIReady = callback;
-    });
-};
-
 SplitPlayerVideo.youtube.prototype = {
+
+    loadingDependencies: false,
+
+    load(callback) {
+
+        if (this.loadingDependencies) {
+            return;
+        }
+
+        this.loadingDependencies = true;
+
+        $.getScript('//youtube.com/iframe_api', function () {
+            window.onYouTubeIframeAPIReady = callback;
+        });
+    },
+
+    ready() {
+        this._render();
+        this.create();
+    },
 
     create() {
 
@@ -48,6 +59,7 @@ SplitPlayerVideo.youtube.prototype = {
         });
     },
 
+
     onReady() {
         this.setPlayerDuration();
         this.mute();
@@ -55,6 +67,7 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     onError(err) {
+
         var code = err.data;
         if (code === 100 || code === 150) {
             console.error('Video %s Not Found', this.settings.videoId);
@@ -90,14 +103,13 @@ SplitPlayerVideo.youtube.prototype = {
 
     timeTo(time) {
 
+        console.log(this.videoPlayer.getPlayerState());
         if (time >= this.getDuration()) {
             this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 
         time = (time + this.settings.startSeconds);
-
-        console.log('set time to %s', time);
 
         this.videoPlayer.seekTo(time);
     },

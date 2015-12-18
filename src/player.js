@@ -1,4 +1,4 @@
-/* globals _, $, SplitPlayerVideo */
+/* globals _, extend, SplitPlayerVideo */
 
 'use strict';
 
@@ -18,6 +18,8 @@ var SplitPlayer = function (settings) {
 
     this.readyCount = 0;
 
+    this.$dom = null;
+
     // video instances container
     this.videos = [];
 
@@ -33,15 +35,21 @@ var SplitPlayer = function (settings) {
     // dependencie loading status
     this._dependenciesLoaded = false;
 
-    this.settings = $.extend({
+    this.settings = extend({
         hoster: 'youtube',
         videos: [],
         area: null,
-        maxVideos: 4,
-        volume: 100
-    }, settings) ;
+        maxVideos: 6,
+        volume: 100,
+        template: '<div id="SplitPlayer"></div>'
+    }, settings);
 
-    this._loadVideoDependencies();
+    this._render();
+
+    /* add initial declared videos */
+    for (let video of this.settings.videos) {
+        this.addVideo(video);
+    }
 
     return this;
 };
@@ -51,71 +59,102 @@ SplitPlayer.prototype = {
     /*
      * add Plugins
      */
-    addPlugin (Plugin) {
-        let _instance = new Plugin(this);
+    addPlugin(Plugin, settings) {
+        let _instance = new Plugin(this, settings || {});
         this.plugins.push(_instance);
         return _instance;
     },
 
-    /*
-     * Load Video Dependecnies like youtubeIframeApi
-     */
-    _loadVideoDependencies() {
-
-        if (this._dependenciesLoaded) {
-            return;
-        }
-
-        SplitPlayerVideo[this.settings.hoster].load(
-            this._onVideoDependeciesReady.bind(this)
-        );
-
-    },
-
     _onVideoDependeciesReady() {
+        // set loading state
+        this.playerStateIs = playerState.loading;
 
+        // call all dependencie loaded hook
+        for (let video of this.videos) {
+            video.ready();
+        }
         this._dependenciesLoaded = true;
 
-        this._render();
+        console.info('api loaded');
+    },
 
-        /* add initial declared videos */
-        for (let video of this.settings.videos) {
+    addVideos(videos) {
+        for (let video of videos) {
             this.addVideo(video);
         }
 
-        this.playerStateIs = playerState.loading;
-
-        console.info('api loaded');
+        if (this._dependenciesLoaded) {
+            for (let video of this.videos) {
+                video.ready();
+            }
+        }
+        return this;
     },
 
     addVideo(video) {
 
         // max videos check
         if (this.videos.length >= this.settings.maxVideos) {
-            return console.info('video limit reached only %s allowed', this.settings.maxVideos);
+            return console.error('video limit reached only %s allowed', this.settings.maxVideos);
         }
 
-        this.videos.push(
-            // create hoster specific video instance
-            new SplitPlayerVideo[this.settings.hoster](this, video)
+        // check video hoster supported
+        if (!SplitPlayerVideo.hasOwnProperty(video.hoster)) {
+            return console.error('video hoster %s not available', video.hoster);
+        }
+
+        var current = new SplitPlayerVideo[video.hoster](this, video);
+
+        // load dependencies
+        current.load(
+            this._onVideoDependeciesReady.bind(this)
         );
 
+        // create hoster specific video instance
+        this.videos.push(
+            current
+        );
+
+        return this;
+    },
+
+    getVideo(videoId) {
+        // get video from array
+        return _.find(this.videos, function(video) {
+            return video.settings.videoId === videoId;
+        });
+    },
+
+    // destroy all videos and player himself
+    destroy() {
+        for (let video of this.videos) {
+            this.destroyVideo(video.settings.videoId);
+        }
+
+        for (let Plugin of this.plugins) {
+            if (Plugin.destroy) {
+                Plugin.destroy();
+            }
+        }
     },
 
     destroyVideo(videoId) {
         // first remove video from player list
         var video = this.removeVideo(videoId);
 
-        // destory video him
+        // destory video
         video.destroy();
+    },
+
+    emptyPlayer() {
+        for (let video of this.videos) {
+            this.destroyVideo(video.settings.videoId);
+        }
     },
 
     removeVideo(videoId) {
 
-        // get video from array
-        var video = _.find(this.videos, function(video) {
-            return video.settings.videoId === videoId;
-        });
+        var video = this.getVideo(videoId);
 
         // if there is a video
         if (!video) {
@@ -193,7 +232,8 @@ SplitPlayer.prototype = {
         // start ticker
         this.ticker = window.setInterval(this.onUpdate.bind(this), 500);
 
-        let playedTime = this.getPlayedTime();
+        let times = this.videos.map(v => v.getPlayedTime());
+        let playedTime =  Math.max(...times);
 
         for (let video of this.videos) {
             if (video.getDuration() >= playedTime) {
@@ -210,10 +250,15 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.playing;
 
-        return console.info('playing');
+        console.info('playing');
+
+        return this;
     },
 
     pause() {
+
+        // stop ticker
+        clearInterval(this.ticker);
 
         // abort if player not playing state
         if (this.playerStateIs === playerState.pause) {
@@ -225,9 +270,6 @@ SplitPlayer.prototype = {
             video.pause();
         }
 
-        // stop ticker
-        clearInterval(this.ticker);
-
         // hook all plugins
         for (let Plugin of this.plugins) {
             if (Plugin.onPause) {
@@ -237,7 +279,9 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.pause;
 
-        return console.info('pause');
+        console.info('pause');
+
+        return this;
     },
 
     /*
@@ -252,7 +296,10 @@ SplitPlayer.prototype = {
 
     stop() {
 
-        // abort if player not playing state
+        // stop ticker
+        clearInterval(this.ticker);
+
+        // abort if player not in playing state
         if (this.playerStateIs !== playerState.pause && this.playerStateIs !== playerState.playing) {
             return;
         }
@@ -264,9 +311,6 @@ SplitPlayer.prototype = {
             }
         }
 
-        // stop ticker
-        clearInterval(this.ticker);
-
         // hook all plugins
         for (let Plugin of this.plugins) {
             if (Plugin.onStop) {
@@ -276,26 +320,35 @@ SplitPlayer.prototype = {
 
         this.playerStateIs = playerState.unstarted;
 
-        return console.info('stopped');
+        console.info('stopped');
+
+        return this;
     },
 
     timeTo(time) {
         for (let video of this.videos) {
             video.timeTo(time);
         }
-    },
-
-    getPlayedTime() {
-        let times = this.videos.map(v => v.getpPlayedTime());
-
-        return Math.max(...times);
+        return this;
     },
 
     volumeTo(percentage) {
+
+        if (percentage > 100) {
+            percentage = 100;
+        }
+
+        else if (percentage < 0) {
+            percentage = 0;
+        }
+
         this.settings.volume = percentage;
+
         for (let video of this.videos) {
             video.volumeTo(percentage);
         }
+
+        return this;
     },
 
     _videosInState(state) {
@@ -314,8 +367,7 @@ SplitPlayer.prototype = {
             return console.info('no html parent defined', this.settings.area);
         }
 
-        $(this.settings.area).prepend('<div id="SplitPlayer"></div>');
-
+        this.$dom = $(this.settings.area).prepend(this.settings.template);
     }
 
 };

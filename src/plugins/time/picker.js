@@ -1,58 +1,64 @@
-/* globals $ */
+/* globals $, extend */
 
 'use strict';
 
-var SplitPlayerTimePicker = function (timeline) {
-    this.timeline = timeline;
+var SplitPlayerTimePicker = function (timeManager, settings) {
+    this.timeManager = timeManager;
 
-    this.template = '<i class="preview-line"><time></time></i>';
+    this.$timeline = this.timeManager.$timeline;
+    this.$previewLine = null;
+
     this.previewedTime = 0;
+
+    // extend settings
+    this.settings = extend({}, this.timeManager.settings, {
+        area: '#timeline',
+        template: '<i class="preview-line"><time></time></i>'
+    }, settings || {});
 
     this._render();
     this._setEvents();
+
     return this;
 };
 
 SplitPlayerTimePicker.prototype = {
 
-    onReady() {
-
-
-    },
-
+    // set mousemove and click event
     _setEvents() {
-        this.timeline.element
+        this.$timeline
             .on('mousemove', this._showTime.bind(this))
             .on('mouseup', this._setTime.bind(this));
     },
 
+
+    // show time on mousemove
     _showTime(e) {
-        let leftPos = (e.pageX - this.timeline.element.offset().left);
-        let percentage = ((leftPos * 100) / this.timeline.element.width());
-        this.previewedTime = ((this.timeline.player.duration / 100) * percentage);
 
-        this.previewLine.width(percentage + '%').find('time').html(this._formatTime(this.previewedTime));
-    },
+        let leftPos = (e.pageX - this.$timeline.offset().left);
 
-    _setTime() {
-        this.timeline.player.timeTo(this.previewedTime);
-        this.timeline.setTo(this.previewedTime);
-    },
+        let percentage = ((leftPos * 100) / this.$timeline.width());
 
-    _formatTime(time) {
-        var minutes = Math.floor(time / 60);
-        var seconds = Math.round(time - minutes * 60);
-
-        if (seconds < 10) {
-            seconds = '0' + seconds;
+        // set to 0 if negative value
+        if (percentage < 0) {
+            percentage = 0;
         }
 
-        return minutes + ':' + seconds;
+        this.previewedTime = ((this.timeManager.player.duration / 100) * percentage);
+
+        this.$previewLine.width(percentage + '%').find('time').html(
+            this.timeManager._formatTime(this.previewedTime)
+        );
+    },
+
+    // set time on click
+    _setTime() {
+        this.timeManager.player.timeTo(this.previewedTime);
     },
 
     _render() {
-        this.timeline.element.append(this.template);
-        this.previewLine = this.timeline.element.find('.preview-line');
+        this.$timeline.append(this.settings.template);
+        this.$previewLine = this.$timeline.find('.preview-line');
     }
 
 };

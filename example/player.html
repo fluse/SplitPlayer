@@ -3,71 +3,23 @@
 
     <head>
         <title>SplitPlayer Example</title>
+
+        <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
 
-        <style>
-            #SplitPlayer {
-                display: flex;
-            }
-            #SplitPlayer * {
-                flex: 1;
-            }
-
-            #SplitPlayer > * {
-                position: relative;
-                background: #000;
-            }
-
-            #timeline {
-                width: 100%;
-                position: relative;
-                height: 20px;
-                background: #efefef;
-            }
-
-            #timeline i {
-                position: absolute;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                background: #e8a040;
-            }
-
-            #timeline .preview-line {
-                display: none;
-                position: absolute;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                background: #f7c27a;
-            }
-
-            #timeline:hover .preview-line {
-                display: block;
-            }
-
-            #timeline .preview-line time {
-                position: absolute;
-                right: 0;
-                bottom: 0;
-
-            }
-
-            #splitPlayerController {
-                text-align: center;
-            }
-            .no-video {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-            }
-        </style>
-
         <div id="videoPlayer">
+        </div>
+
+        <div class="grd-1">
+            <div id="playerTimeline">
+
+            </div>
+        </div>
+
+        <div id="playerTimeDisplay">
+
         </div>
 
         <div id="splitPlayerController">
@@ -77,7 +29,8 @@
             <span onclick="player.stop()">stop</span>
             <span onclick="player.toggle()">toggle</span>
 
-            <input type="text" value="100" onChange="setVolume(this)" />
+            <span onclick="player.emptyPlayer()">empty player</span>
+            <span onclick="player.addVideos(videos)">add videos</span>
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
@@ -89,11 +42,13 @@
 
             var videos = [{
                 videoId: 'QfrUodC2pbg',
+                hoster: 'youtube',
                 startSeconds: 0,
                 isMuted: true
             },  {
                 videoId: 'J4Ltw1ZA9ho',
                 startSeconds: 0,
+                hoster: 'youtube',
                 isMuted: false
             }];
 
@@ -102,13 +57,26 @@
                 videos: videos
             });
 
-            var playerTimeline = player.addPlugin(SplitPlayerTimeline);
+            var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
-            playerTimeline.extend(SplitPlayerTimePicker);
-            playerTimeline.extend(SplitPlayerTimeHud);
+            var playerSoundManager = player.addPlugin(SplitPlayerSoundManager, {
+                area: '#splitPlayerController'
+            });
+
+            // add timeline
+            playerTimeManager.extend(SplitPlayerTimeLine, {
+                area: '#playerTimeline'
+            });
+
+            // add timeline time picker
+            playerTimeManager.extend(SplitPlayerTimePicker);
+
+            // add show time in hud
+            playerTimeManager.extend(SplitPlayerTimeDisplay, {
+                area: '#playerTimeDisplay'
+            });
 
             var setVolume = function (el) {
-                console.log(player);
                 player.volumeTo($(el).val());
             };
         </script>

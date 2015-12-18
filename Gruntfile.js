@@ -4,6 +4,16 @@ module.exports = function (grunt) {
 
     require('load-grunt-tasks')(grunt);
 
+    var tasks = [
+        'concat:ES6', // concat all es6 files to one
+        'babel', // convert es6 to es5
+        'uglify:appJs', // concat converted files and normal files
+        'concat:standalone', // concat all es6 files to one
+        'uglify:standalone', // concat converted files and normal files
+        'usebanner:copyright', // insert banner
+        'clean:dist' // clean
+    ];
+
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -14,6 +24,17 @@ module.exports = function (grunt) {
                 },
                 src: 'src/**/*.js',
                 dest: 'dist/ES6.js'
+            },
+            standalone: {
+                options: {
+                    sourceMap: false
+                },
+                src: [
+                    'node_modules/jquery/dist/jquery.js',
+                    'node_modules/underscore/underscore.js',
+                    'dist/splitplayer.js'
+                ],
+                dest: 'dist/splitplayer.standalone.js'
             }
         },
         babel: {
@@ -34,6 +55,10 @@ module.exports = function (grunt) {
             appJs: {
                 src: 'dist/splitplayer.js',
                 dest: 'dist/splitplayer.min.js'
+            },
+            standalone: {
+                src: 'dist/splitplayer.standalone.js',
+                dest: 'dist/splitplayer.standalone.min.js'
             }
         },
         notify: {
@@ -51,7 +76,7 @@ module.exports = function (grunt) {
         watch: {
             js: {
                 files: ['src/**/*'],
-                tasks: ['concat:ES6', 'babel', 'notify:js'],
+                tasks: tasks,
                 options: {
                     livereload: true,
                     spawn: false
@@ -61,30 +86,23 @@ module.exports = function (grunt) {
         clean: {
             dist: [
                 'dist/ES6.js',
-                'dist/ES6.js.map',
-                'dist/app.min.js.map'
+                'dist/*.map'
             ]
         },
         usebanner: {
             copyright: {
                 options: {
                     position: 'top',
-                    banner: '/* <%= pkg.name %> <%= pkg.version %> - <%= pkg.website %> */',
+                    banner: '/* <%= pkg.name %> <%= pkg.version %> - <%= pkg.website %> - copyright <%= pkg.author %> */',
                     linebreak: true
                 },
                 files: {
-                    src: ['dist/splitplayer.min.css', 'dist/splitplayer.min.js']
+                    src: ['dist/*.js']
                 }
             }
         }
     });
 
-    grunt.registerTask('deploy', [
-        'concat:ES6', // concat all es6 files to one
-        'babel', // convert es6 to es5
-        'uglify', // concat converted files and normal files
-        'usebanner:copyright', // insert banner
-        'clean:dist' // clean
-    ]);
+    grunt.registerTask('deploy', tasks);
 
 };

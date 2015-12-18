@@ -1,21 +1,27 @@
 # SplitPlayer
 
-SplitPlayer is a high flexible extendable Video Player, that keeps multiple videos in sync.
+SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync.
 
 you can see an productive integration on http://splitplay.tv
 
-## restriction and licence
+example on http://player.splitplay.tv
 
-you can use this player only for non commercial products and websites.
+## Installation and Usage
 
-#### Supported Hoster
+```shell
+npm install splitplayer
+```
 
-- Youtube
+include one of these following splitplayer javascript into your page:
 
-## dependencies
-
-- jQuery > 1.8
-- underscoreJS
+```html
+<!-- unpacked -->
+<script src="/dist/splitplayer.js"></script>
+<!-- minified -->
+<script src="/dist/splitplayer.min.js"></script>
+<!-- standalone (included dependencies underscoreJS and jQuery) -->
+<script src="/dist/splitplayer.standalone.min.js"></script>
+```
 
 ## create player
 
@@ -27,25 +33,42 @@ var player = new SplitPlayer(options);
 
 ```javascript
 var options = {
-    hoster: 'youtube',
     videos: [],
     area: null,
-    maxVideos: 4
-}
+    maxVideos: 4,
+    volume: 100,
+    template: '<div id="SplitPlayer"></div>'
+};
 ```
 
-#### add video
+### add videos on player creation
+
+```javascript
+
+var videoList = [{options}, {options}, {options}];
+
+var player = new SplitPlayer(options, videoList);
+```
+
+### add single video after player creation
 
 ```javascript
 // create new player
 var player = new SplitPlayer(options);
 
 // add video
-player.addVideo({
+player.addVideo({object});
+```
+
+### video options
+```javascript
+
+var video = {
+    hoster: 'youtube',
     videoId: String,
     startSeconds: Number, // 1.2 float support
     isMuted: Boolean
-});
+}
 ```
 
 #### add plugin
@@ -53,23 +76,33 @@ player.addVideo({
 ```javascript
 var player = new SplitPlayer(options);
 
-var playerTimeline = player.addPlugin(SplitPlayerTimeline);
-};
+var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+
 ```
 
-#### extend plugin
+`addPlugin()` return the created instance of given plugin
 
-maybe you want to add a new behavior to your playerTimeline, like an on hover show time
+#### add plugin and extend plugin with modules
+
+maybe you want to add a new behavior to your playerTime, like an on hover show time
 
 ```javascript
+
 var player = new SplitPlayer(options);
 
-var playerTimeline = player.addPlugin(SplitPlayerTimeline);
+var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
-playerTimeline.extend(SplitPlayerTimePicker);
-
-};
+playerTimeManager.extend(SplitPlayerTimePicker);
 ```
+
+`extend()` return the created instance of given module
+
+#### available time Plugins
+
+- TimeManager
+ - TimeLine
+ - TimePicker
+ - TimeDisplay
 
 #### playerStates
 
@@ -95,7 +128,11 @@ hooks are used to connect plugins to player behavior
 - onStop
 - onUpdate
 
-#### play videos
+### Public Methods
+
+these methods can be used outside
+
+#### play()
 
 play all videos if videos ready
 
@@ -103,7 +140,7 @@ play all videos if videos ready
 player.play();
 ```
 
-#### pause videos
+#### pause()
 
 pause all videos
 
@@ -111,7 +148,7 @@ pause all videos
 player.pause();
 ```
 
-#### toggle videos
+#### toggle()
 
 Toggle Video from play to pause vice versa
 
@@ -119,7 +156,7 @@ Toggle Video from play to pause vice versa
 player.toggle();
 ```
 
-#### stop videos
+#### stop()
 
 stop all videos. The played time will be set to 0 + startSeconds
 
@@ -127,7 +164,7 @@ stop all videos. The played time will be set to 0 + startSeconds
 player.stop();
 ```
 
-#### removeVideo
+#### removeVideo()
 
 remove a video from Player by calling following methods with argument videoId;
 
@@ -135,10 +172,48 @@ remove a video from Player by calling following methods with argument videoId;
 player.removeVideo(videoId);
 ```
 
-#### timeTo
+#### timeTo()
 
 setTime for all Videos
 
 ```javascript
 player.timeTo(Number); // float number supported
 ```
+
+#### volumeTo()
+
+set Volume for non muted videos to given number
+
+```javascript
+player.volumeTo(Number); // 0-100
+```
+
+#### getPlayedTime()
+
+get current played time in seconds
+
+```javascript
+return seconds = player.getPlayedTime();
+```
+
+#### all public methods can be chained
+
+```javascript
+player.play().stop().pause().volumeTo(0).timeTo(10).toggle();
+```
+
+#### Supported Hoster
+- Youtube
+- Vimeo (planned)
+- Native (planned)
+
+## Dependencies
+- jQuery > 1.8
+- underscoreJS
+
+## Browser Support
+- IE
+
+## restriction and licence
+
+you can use this player only for non commercial products and websites.
