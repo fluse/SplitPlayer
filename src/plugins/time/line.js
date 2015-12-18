@@ -15,12 +15,16 @@ var SplitPlayerTimeLine = function (timeManager, settings) {
         template: '<div id="timeline"><i class="bar"></i></div>'
     }, settings);
 
-    this._render();
+    this.mount();
 
     return this;
 };
 
 SplitPlayerTimeLine.prototype = {
+
+    mount() {
+        this._render();
+    },
 
     /*
      * player onReady hook

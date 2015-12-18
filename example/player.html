@@ -28,9 +28,17 @@
             <span onclick="player.pause()">pause</span>
             <span onclick="player.stop()">stop</span>
             <span onclick="player.toggle()">toggle</span>
+        </div>
 
-            <span onclick="player.emptyPlayer()">empty player</span>
+        <div class="settings grd-1">
+            <span onclick="player.empty()">empty player</span>
+            <span onclick="player.destroy()">destroy player</span>
+            <span onclick="player.create()">create player</span>
             <span onclick="player.addVideos(videos)">add videos</span>
+            <label>
+                add youtube video
+                <input type="input" value="" />
+            </label>
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>

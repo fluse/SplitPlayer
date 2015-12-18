@@ -196,6 +196,22 @@ get current played time in seconds
 return seconds = player.getPlayedTime();
 ```
 
+#### empty()
+
+you want to delete all videos? use empty()
+
+```javascript
+player.empty();
+```
+
+#### destroy()
+
+you want to delete the player? use following
+
+```javascript
+player.destroy();
+```
+
 #### all public methods can be chained
 
 ```javascript

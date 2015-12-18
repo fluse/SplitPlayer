@@ -93,14 +93,19 @@ SplitPlayerTimeManager.prototype = {
     _formatTime(timeInplayedTime) {
         // convert to minutes
         let minutes = Math.floor(timeInplayedTime / 60);
-        // get playedTime;
-        let playedTime = Math.round(timeInplayedTime - minutes * 60);
+        // convert seconds
+        let seconds = Math.round(timeInplayedTime - minutes * 60);
 
-        if (playedTime < 10) {
-            playedTime = '0' + playedTime;
+        if (seconds < 10) {
+            seconds = '0' + seconds;
         }
 
-        return minutes + ':' + playedTime;
+        if (seconds === 60) {
+            seconds = '00';
+            minutes++;
+        }
+
+        return minutes + ':' + seconds;
     },
 
     destroy() {

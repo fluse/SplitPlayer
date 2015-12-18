@@ -16,13 +16,17 @@ var SplitPlayerTimePicker = function (timeManager, settings) {
         template: '<i class="preview-line"><time></time></i>'
     }, settings || {});
 
-    this._render();
-    this._setEvents();
+    this.mount();
 
     return this;
 };
 
 SplitPlayerTimePicker.prototype = {
+
+    mount() {
+        this._render();
+        this._setEvents();
+    },
 
     // set mousemove and click event
     _setEvents() {

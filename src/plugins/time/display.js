@@ -14,11 +14,15 @@ var SplitPlayerTimeDisplay = function (timeManager, settings) {
         template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
     }, settings);
 
-    this._render();
+    this.mount();
     return this;
 };
 
 SplitPlayerTimeDisplay.prototype = {
+
+    mount() {
+        this._render();
+    },
 
     onReady() {
         this.onSetTo(this.timeManager.getData());

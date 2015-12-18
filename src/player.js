@@ -44,17 +44,24 @@ var SplitPlayer = function (settings) {
         template: '<div id="SplitPlayer"></div>'
     }, settings);
 
-    this._render();
+    this.mount();
 
     /* add initial declared videos */
-    for (let video of this.settings.videos) {
-        this.addVideo(video);
-    }
+    this.addVideos(this.settings.videos);
 
     return this;
 };
 
 SplitPlayer.prototype = {
+
+    mount() {
+        this._render();
+    },
+
+    create() {
+        this._render();
+        this.addVideos(this.settings.videos);
+    },
 
     /*
      * add Plugins
@@ -71,7 +78,7 @@ SplitPlayer.prototype = {
 
         // call all dependencie loaded hook
         for (let video of this.videos) {
-            video.ready();
+            video.mount();
         }
         this._dependenciesLoaded = true;
 
@@ -79,30 +86,43 @@ SplitPlayer.prototype = {
     },
 
     addVideos(videos) {
-        for (let video of videos) {
-            this.addVideo(video);
-        }
 
-        if (this._dependenciesLoaded) {
-            for (let video of this.videos) {
-                video.ready();
+        // iterate
+        for (let video of videos) {
+
+            // trigger add
+            var addedVideo = this.addVideo(video);
+
+            // if added and all dependencies laoded, mount video
+            if (addedVideo !== false && this._dependenciesLoaded) {
+                addedVideo.mount();
             }
         }
+
         return this;
     },
 
     addVideo(video) {
 
+        // duplicate video check
+        if (this.getVideo(video.videoId) !== false) {
+            console.error('video %s allready added', video.videoId);
+            return false;
+        }
+
         // max videos check
         if (this.videos.length >= this.settings.maxVideos) {
-            return console.error('video limit reached only %s allowed', this.settings.maxVideos);
+            console.error('video limit reached only %s allowed', this.settings.maxVideos);
+            return false;
         }
 
-        // check video hoster supported
+        // video hoster supported check
         if (!SplitPlayerVideo.hasOwnProperty(video.hoster)) {
-            return console.error('video hoster %s not available', video.hoster);
+            console.error('video hoster %s not available', video.hoster);
+            return false;
         }
 
+        // create video instance
         var current = new SplitPlayerVideo[video.hoster](this, video);
 
         // load dependencies
@@ -115,14 +135,16 @@ SplitPlayer.prototype = {
             current
         );
 
-        return this;
+        return current;
     },
 
     getVideo(videoId) {
         // get video from array
-        return _.find(this.videos, function(video) {
+        var result = _.find(this.videos, function(video) {
             return video.settings.videoId === videoId;
         });
+
+        return result || false;
     },
 
     // destroy all videos and player himself
@@ -138,6 +160,8 @@ SplitPlayer.prototype = {
                 Plugin.destroy();
             }
         }
+
+        this.$dom.remove();
     },
 
     destroyVideo(videoId) {
@@ -148,7 +172,10 @@ SplitPlayer.prototype = {
         video.destroy();
     },
 
-    emptyPlayer() {
+    empty() {
+        this.duration = 0;
+        this.stop();
+
         for (let video of this.videos) {
             this.destroyVideo(video.settings.videoId);
         }
@@ -229,16 +256,18 @@ SplitPlayer.prototype = {
 
     },
 
+    getPlayedTime() {
+        let times = this.videos.map(v => v.getPlayedTime());
+        return Math.max(...times);
+    },
+
     play() {
 
         // start ticker
         this.ticker.start();
 
-        let times = this.videos.map(v => v.getPlayedTime());
-        let playedTime =  Math.max(...times);
-
         for (let video of this.videos) {
-            if (video.getDuration() >= playedTime) {
+            if (video.getDuration() >= this.getPlayedTime()) {
                 video.play();
             }
         }
@@ -360,10 +389,15 @@ SplitPlayer.prototype = {
 
     _render() {
         if (this.settings.area === null) {
-            return console.info('no html parent defined', this.settings.area);
+            return console.info('no html parent defined');
         }
 
-        this.$dom = $(this.settings.area).prepend(this.settings.template);
+        if ($('#SplitPlayer').length > 0) {
+            return console.info('player allready exist');
+        }
+
+        $(this.settings.area).prepend(this.settings.template);
+        this.$dom = $('#SplitPlayer');
     }
 
 };

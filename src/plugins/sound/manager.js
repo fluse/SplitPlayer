@@ -18,13 +18,17 @@ var SplitPlayerSoundManager = function (player, settings) {
         template: '<input class="volume-slider" type="range" min="%min%" max="%max%" value="%default%" />'
     }, settings || {});
 
-    this._render();
-    this._setEvents();
+    this.mount();
 
     return this;
 };
 
 SplitPlayerSoundManager.prototype = {
+
+    mount() {
+        this._render();
+        this._setEvents();
+    },
 
     // set mousemove and click event
     _setEvents() {
@@ -50,6 +54,10 @@ SplitPlayerSoundManager.prototype = {
 
         $(this.settings.area).append(template);
         this.$volume = $(this.settings.area).find('.volume-slider');
+    },
+
+    destroy() {
+        this.$volume.remove();
     }
 
 };

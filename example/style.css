@@ -54,7 +54,7 @@ body {
 
 }
 
-#splitPlayerController {
+#splitPlayerController, .settings {
     float: left;
     text-align: center;
     display: block;
@@ -62,7 +62,7 @@ body {
     padding: .5em;
 }
 
-#splitPlayerController span {
+#splitPlayerController span, .settings span {
     padding: .5em;
     border: 2px;
     cursor: pointer;

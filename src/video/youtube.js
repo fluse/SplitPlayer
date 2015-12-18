@@ -36,7 +36,7 @@ SplitPlayerVideo.youtube.prototype = {
         });
     },
 
-    ready() {
+    mount() {
         this._render();
         this.create();
     },
