@@ -32,11 +32,20 @@ SplitPlayerTimeManager.prototype = {
         return this.player.plugins.push(Module);
     },
 
+    mount() {
+        for (let Plugin of this.plugins) {
+            if (Plugin.mount) {
+                Plugin.mount();
+            }
+        }
+    },
+
     /*
      * player onReady hook
      */
     onReady() {
         this.isActive = true;
+        this.setTo(0);
     },
 
     /*
@@ -50,7 +59,7 @@ SplitPlayerTimeManager.prototype = {
      * player onStop hook
      */
     onStop() {
-        this.playedTime = 0;
+        this.setTo(0);
     },
 
     /*
@@ -58,7 +67,6 @@ SplitPlayerTimeManager.prototype = {
      */
     setTo(playedTime) {
         this.playedTime = playedTime;
-        console.log(playedTime);
         // plugin
         for (let Plugin of this.plugins) {
             if (Plugin.onSetTo) {

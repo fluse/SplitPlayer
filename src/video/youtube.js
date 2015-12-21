@@ -59,10 +59,12 @@ SplitPlayerVideo.youtube.prototype = {
         });
     },
 
-
     onReady() {
         this.setPlayerDuration();
-        this.mute();
+        if (this.settings.isMuted) {
+            this.mute();
+        }
+        this.timeTo(0);
         this.player.onReady();
     },
 
@@ -103,7 +105,6 @@ SplitPlayerVideo.youtube.prototype = {
 
     timeTo(time) {
 
-        console.log(this.videoPlayer.getPlayerState());
         if (time >= this.getDuration()) {
             this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
@@ -124,21 +125,17 @@ SplitPlayerVideo.youtube.prototype = {
     },
 
     mute() {
-        if (!this.isMuted) {
-            return false;
-        }
-
         this.videoPlayer.mute();
         this.isMuted = true;
+        this.settings.isMuted = this.isMuted;
+
         return true;
     },
 
     unMute() {
-        if (!this.isMuted) {
-            return false;
-        }
-
         this.isMuted = false;
+        this.settings.isMuted = this.isMuted;
+        this.videoPlayer.unMute();
         this.volumeTo(this.player.settings.volume);
 
         return true;

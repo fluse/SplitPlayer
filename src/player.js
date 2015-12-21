@@ -29,8 +29,8 @@ var SplitPlayer = function (settings) {
     // global player state
     this.playerStateIs = playerState.inactive;
 
-    // ticker for onUpdate interval
-    this.ticker = new Ticker(this.onUpdate.bind(this), 500);
+    // ticker for onUpdate interval on 0.1 seconds
+    this.ticker = new Ticker(this.onUpdate.bind(this), 100);
 
     // dependencie loading status
     this._dependenciesLoaded = false;
@@ -93,7 +93,7 @@ SplitPlayer.prototype = {
             // trigger add
             var addedVideo = this.addVideo(video);
 
-            // if added and all dependencies laoded, mount video
+            // if added and all dependencies loaded, mount video
             if (addedVideo !== false && this._dependenciesLoaded) {
                 addedVideo.mount();
             }
@@ -355,6 +355,12 @@ SplitPlayer.prototype = {
             video.timeTo(time);
         }
         return this;
+    },
+
+    mute() {
+        for (let video of this.videos) {
+            video.mute();
+        }
     },
 
     volumeTo(percentage) {

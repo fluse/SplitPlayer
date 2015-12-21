@@ -103,7 +103,10 @@ playerTimeManager.extend(SplitPlayerTimePicker);
  - TimeLine
  - TimePicker
  - TimeDisplay
-
+- Analytics
+- SoundManager
+ - SoundSelector
+ 
 #### playerStates
 
 ```javascript

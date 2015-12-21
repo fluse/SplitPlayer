@@ -30,6 +30,9 @@
             <span onclick="player.toggle()">toggle</span>
         </div>
 
+        <div id="soundTracks" class="grd-1">
+        </div>
+
         <div class="settings grd-1">
             <span onclick="player.empty()">empty player</span>
             <span onclick="player.destroy()">destroy player</span>
@@ -60,7 +63,7 @@
                 isMuted: false
             },{
                 videoId: 'reWiqJ2iux8',
-                startSeconds: 0,
+                startSeconds: 30,
                 hoster: 'youtube',
                 isMuted: true
             }];
@@ -74,6 +77,13 @@
 
             var playerSoundManager = player.addPlugin(SplitPlayerSoundManager, {
                 area: '#splitPlayerController'
+            });
+
+            // add tracking
+            player.addPlugin(SplitPlayerAnalytics);
+
+            playerTimeManager.extend(SplitPlayerSoundTrack, {
+                area: '#soundTracks'
             });
 
             // add timeline

@@ -7,8 +7,10 @@ var SplitPlayerSoundManager = function (player, settings) {
 
     this.$volume = null;
 
+    this.plugins = [];
+
     // extend settings
-    this.settings = $.extend({}, this.player.settings, {
+    this.settings = $.extend(true, {}, this.player.settings, {
         sound: {
             min: 0,
             max: 100,
@@ -24,6 +26,19 @@ var SplitPlayerSoundManager = function (player, settings) {
 };
 
 SplitPlayerSoundManager.prototype = {
+
+    /*
+     * extend Module
+     */
+    extend(Module, settings) {
+        Module = new Module(this, settings || {});
+
+        // push internal
+        this.plugins.push(Module);
+
+        // push to player plugins for other hooks
+        return this.player.plugins.push(Module);
+    },
 
     mount() {
         this._render();
@@ -49,7 +64,7 @@ SplitPlayerSoundManager.prototype = {
 
         // replace params
         for (var placeholder in this.settings.sound) {
-            template = template.replace(':' + placeholder, this.settings.sound[placeholder]);
+            template = template.replace('%' + placeholder + '%', this.settings.sound[placeholder]);
         }
 
         $(this.settings.area).append(template);
