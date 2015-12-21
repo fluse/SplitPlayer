@@ -83,6 +83,10 @@ body {
     bottom: 0;
 }
 
+.txt-cnr {
+    text-align: center;
+}
+
 .grd-1 {
     float: left;
     display: block;

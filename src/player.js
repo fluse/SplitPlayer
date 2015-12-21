@@ -46,16 +46,19 @@ var SplitPlayer = function (settings) {
 
     this.mount();
 
-    /* add initial declared videos */
-    this.addVideos(this.settings.videos);
-
     return this;
 };
 
 SplitPlayer.prototype = {
 
     mount() {
-        this._render();
+        this.create();
+
+        for (let Plugin of this.plugins) {
+            if (Plugin.mount) {
+                Plugin.mount();
+            }
+        }
     },
 
     create() {

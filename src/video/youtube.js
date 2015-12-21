@@ -1,4 +1,4 @@
-/* globals playerState, YT, $ */
+/* globals playerState, extend, YT, $ */
 'use strict';
 
 var SplitPlayerVideo = SplitPlayerVideo || {};

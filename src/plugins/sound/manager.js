@@ -40,6 +40,10 @@ SplitPlayerSoundManager.prototype = {
         return this.player.plugins.push(Module);
     },
 
+    onUpdate() {
+        console.log('test');
+    },
+
     mount() {
         this._render();
         this._setEvents();

@@ -30,13 +30,15 @@
             <span onclick="player.toggle()">toggle</span>
         </div>
 
-        <div id="soundTracks" class="grd-1">
+        <div id="soundTracks" class="grd-1 txt-cnr">
+            <h3>Set Soundtracks</h3>
         </div>
 
-        <div class="settings grd-1">
+        <div class="settings grd-1 txt-cnr">
+            <h3>Settings</h3>
             <span onclick="player.empty()">empty player</span>
             <span onclick="player.destroy()">destroy player</span>
-            <span onclick="player.create()">create player</span>
+            <span onclick="player.mount()">create player</span>
             <span onclick="player.addVideos(videos)">add videos</span>
             <label>
                 add youtube video
@@ -98,10 +100,6 @@
             playerTimeManager.extend(SplitPlayerTimeDisplay, {
                 area: '#playerTimeDisplay'
             });
-
-            var setVolume = function (el) {
-                player.volumeTo($(el).val());
-            };
         </script>
     </body>
 

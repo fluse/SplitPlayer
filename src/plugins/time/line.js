@@ -44,6 +44,10 @@ SplitPlayerTimeLine.prototype = {
      * timeManager onSetTo hook
      */
     onSetTo(data) {
+        this.setTo(data);
+    },
+
+    setTo(data) {
         this.$bar.css({
             width: data.percentage + '%'
         });

@@ -13,13 +13,17 @@ var SplitPlayerSoundTrack = function (soundManager, settings) {
         template: '<label><input class="soundtrack" name="soundTracks[]" %checked% type="checkbox" value="%videoId%" /></label>'
     }, settings || {});
 
-    this._render();
-    this._setEvents();
+    this.mount();
 
     return this;
 };
 
 SplitPlayerSoundTrack.prototype = {
+
+    mount() {
+        this._render();
+        this._setEvents();
+    },
 
     // set mousemove and click event
     _setEvents() {
@@ -72,6 +76,9 @@ SplitPlayerSoundTrack.prototype = {
 
         $(this.settings.area).append(template);
         this.$trackList = $(this.settings.area).find('.soundtrack');
-    }
+    },
 
+    destroy() {
+        this.$trackList.remove();
+    }
 };
