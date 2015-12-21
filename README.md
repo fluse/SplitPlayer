@@ -110,34 +110,35 @@ player.addVideo({object});
 | TimePicker      | this plugin will set your selected time as players current played time | TimeManager |
 | TimeDisplay      | show played time on a line | TimeManager |
 | Analytics      | if you have google analytcs running, you can include this plugin to track events | Analytics, TimeManager |
-| SoundTrack      | this plugin gives the possability to select a soundtrack from added videos |
+| SoundTrack      | this plugin gives the possability to select a soundtrack from added videos | SoundManager |
 
- #### Add Plugin
+#### Add Plugin
 
- ```javascript
- var player = new SplitPlayer(options);
+you can add a plugin directy after you've created the player like this
 
- var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+```javascript
+var player = new SplitPlayer(options);
 
- ```
+var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
- `addPlugin()` return the created instance of given plugin
+```
 
- #### Extend Plugin
+`addPlugin()` return created instance of given plugin
 
- maybe you want to add a new behavior to your playerTime, like an on hover show time
+#### Extend Plugin
 
- ```javascript
+maybe you want to add a new behavior to your playerTime, like an on hover show time
 
- var player = new SplitPlayer(options);
+```javascript
 
- var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+var player = new SplitPlayer(options);
 
- playerTimeManager.extend(SplitPlayerTimePicker);
- ```
+var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
- `extend()` return the created instance of given module
+playerTimeManager.extend(SplitPlayerTimePicker);
+```
 
+`extend()` return the created instance of given module
 
 #### playerStates
 
