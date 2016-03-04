@@ -1,4 +1,4 @@
-/* globals $, extend */
+var extend = require('./../../helper/extend.js');
 
 'use strict';
 
@@ -11,7 +11,7 @@ var SplitPlayerTimeManager = function (player, settings) {
     this.plugins = [];
 
     // extend player settings
-    this.settings = $.extend({}, this.player.settings, {
+    this.settings = extend({}, this.player.settings, {
     }, settings || {});
 
     return this;

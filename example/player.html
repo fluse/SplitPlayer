@@ -76,6 +76,10 @@
                 area: '#splitPlayerController'
             });
 
+            var playerSoundSelector = player.addPlugin(SplitPlayerSoundSelector, {
+                area: '#splitPlayerController'
+            });
+
             // add timeline
             playerTimeManager.extend(SplitPlayerTimeLine, {
                 area: '#playerTimeline'

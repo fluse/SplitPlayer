@@ -76,16 +76,20 @@ module.exports = function (grunt) {
         watch: {
             js: {
                 files: ['src/**/*'],
-                tasks: tasks,
+                tasks: ['shell:compile'],
                 options: {
                     livereload: true,
                     spawn: false
                 }
             }
         },
+        shell: {
+            compile: {
+                command: 'cd scripts/ && sh browserify.sh'
+            }
+        },
         clean: {
             dist: [
-                'dist/ES6.js',
                 'dist/*.map'
             ]
         },

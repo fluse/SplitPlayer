@@ -1,16 +1,12 @@
-/* globals _, extend, Ticker, SplitPlayerVideo */
+/* globals _, extend, SplitPlayerVideo */
 
 'use strict';
 
-// player state constants
-const playerState = {
-    unstarted: -1,
-    ended: 0,
-    playing: 1,
-    pause: 2,
-    buffering: 3,
-    loading: 6
-};
+var $ = require('jquery');
+var Ticker = require('./helper/ticker');
+var SplitPlayerVideo = require('./video/');
+
+const playerState = require('./constants.js');
 
 var SplitPlayer = function (settings) {
 
