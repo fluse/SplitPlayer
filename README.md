@@ -1,11 +1,26 @@
 # SplitPlayer
 
-SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync.
-Gives you analytcs access to all hooks
+[![npm package](https://nodei.co/npm/splitplayer.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/splitplayer/)
 
-you can see an productive integration on http://splitplay.tv
+SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync.
+Gives you analytics access to all player hooks.
+
+Productive integration on http://splitplay.tv
 
 example on http://player.splitplay.tv
+
+## Supported Hoster
+- Youtube
+- Vimeo (planned)
+- Native (planned)
+
+## Browser Compatibility
+- IE 9+
+- Chrome latest 2
+- Firefox latest 2
+- Safari latest
+- Android 5
+- iOS not working native yet
 
 # Installation and Usage
 
@@ -15,6 +30,7 @@ npm install splitplayer --save
 ```
 
 ## Include
+
 on page include
 
 ```html
@@ -264,17 +280,11 @@ player.destroy();
 player.play().stop().pause().volumeTo(0).timeTo(10).toggle();
 ```
 
-#### Supported Hoster
-- Youtube
-- Vimeo (planned)
-- Native (planned)
-
 ## Dependencies
 - DOMtastic > 0.12.x
 - underscore > 1.8.x
 - node extend > 3.x.x
 - YT iframe api
-
 
 ## restriction and licence
 
