@@ -27,8 +27,16 @@ SplitPlayerAnalytics.prototype = {
         this.track('stop');
     },
 
-    setTo(timeData) {
-        this.track('setTimeTo', timeData.playedTime);
+    onTimeTo(timeData) {
+        this.track('timeTo', timeData.playedTime);
+    },
+
+    onMute() {
+        this.track('mute');
+    },
+
+    onVolumeChange(percentage) {
+        this.track('volumeTo', percentage);
     },
 
     track(label, value) {

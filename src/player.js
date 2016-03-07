@@ -379,6 +379,13 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             video.mute();
         }
+
+        // hook all plugins
+        for (let Plugin of this.plugins) {
+            if (Plugin.onMute) {
+                Plugin.onMute();
+            }
+        }
     },
 
     volumeTo(percentage) {
@@ -395,6 +402,13 @@ SplitPlayer.prototype = {
 
         for (let video of this.videos) {
             video.volumeTo(percentage);
+        }
+
+        // hook all plugins
+        for (let Plugin of this.plugins) {
+            if (Plugin.onVolumeChange) {
+                Plugin.onVolumeChange(percentage);
+            }
         }
 
         return this;

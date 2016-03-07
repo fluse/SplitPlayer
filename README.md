@@ -1,6 +1,7 @@
 # SplitPlayer
 
 SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync.
+Gives you analytcs access to all hooks
 
 you can see an productive integration on http://splitplay.tv
 
@@ -169,6 +170,9 @@ hooks are used to connect plugins to player behavior
 - onPause
 - onStop
 - onUpdate
+- onTimeTo
+- onMute
+- onVolumeChange
 
 ### Public Methods
 

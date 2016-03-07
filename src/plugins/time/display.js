@@ -28,10 +28,10 @@ SplitPlayerTimeDisplay.prototype = {
     },
 
     onReady() {
-        this.onSetTo(this.timeManager.getData());
+        this.onsetTimeTo(this.timeManager.getData());
     },
 
-    onSetTo(data) {
+    onsetTimeTo(data) {
         this.$duration.html(data.durationFormatted);
         this.$current.html(data.playedTimeFormatted);
     },

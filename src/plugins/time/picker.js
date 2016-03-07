@@ -58,7 +58,7 @@ SplitPlayerTimePicker.prototype = {
 
     // set time on click
     _setTime() {
-        this.timeManager.setTo(this.previewedTime);
+        this.timeManager.setTimeTo(this.previewedTime);
         this.timeManager.player.timeTo(this.previewedTime);
     },
 

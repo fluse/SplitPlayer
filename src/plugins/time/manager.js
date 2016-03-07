@@ -37,32 +37,32 @@ SplitPlayerTimeManager.prototype = {
      */
     onReady() {
         this.isActive = true;
-        this.setTo(0);
+        this.setTimeTo(0);
     },
 
     /*
      * player onUpdate hook
      */
     onUpdate() {
-        this.setTo(this.player.getPlayedTime());
+        this.setTimeTo(this.player.getPlayedTime());
     },
 
     /*
      * player onStop hook
      */
     onStop() {
-        this.setTo(0);
+        this.setTimeTo(0);
     },
 
     /*
      * Set Time to
      */
-    setTo(playedTime) {
+    setTimeTo(playedTime) {
         this.playedTime = playedTime;
         // plugin
         for (var Plugin of this.plugins) {
-            if (Plugin.onSetTo) {
-                Plugin.onSetTo(this.getData());
+            if (Plugin.onsetTimeTo) {
+                Plugin.onsetTimeTo(this.getData());
             }
         }
     },

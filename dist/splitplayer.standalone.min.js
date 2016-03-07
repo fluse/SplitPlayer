@@ -1,3 +1,8 @@
+/* splitplayer 1.2.0 - http://player.splitplay.tv - copyright Holger Schauf */
+/* splitplayer 1.2.0 - http://player.splitplay.tv - copyright Holger Schauf */
+/* splitplayer 1.2.0 - http://player.splitplay.tv - copyright Holger Schauf */
+/* splitplayer 1.2.0 - http://player.splitplay.tv - copyright Holger Schauf */
+/* splitplayer 1.2.0 - http://player.splitplay.tv - copyright Holger Schauf */
 /* splitplayer 1.1.0 - http://player.splitplay.tv - copyright Holger Schauf */
 /* splitplayer 1.1.0 - http://player.splitplay.tv - copyright Holger Schauf */
 /* splitplayer 1.1.0 - http://player.splitplay.tv - copyright Holger Schauf */
