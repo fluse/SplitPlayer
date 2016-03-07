@@ -14,7 +14,7 @@ npm install splitplayer --save
 ```
 
 ## Include
-include one of these following splitplayer javascript into your page:
+on page include
 
 ```html
 <!-- unpacked -->
@@ -93,7 +93,10 @@ var video = {
 
 var videoList = [{options}, {options}, {options}];
 
-var player = new SplitPlayer(options, videoList);
+var player = new SplitPlayer(options);
+
+// add videos
+player.addVideos(videoList);
 ```
 
 #### add one video
@@ -123,7 +126,7 @@ you can add a plugin directy after you've created the player like this
 ```javascript
 var player = new SplitPlayer(options);
 
-var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+var playerTimeManager = player.addPlugin(SplitPlayerPlugins.TimeManager);
 ```
 
 `addPlugin()` return created instance of given plugin
@@ -136,9 +139,9 @@ maybe you want to add a new behavior to your playerTime, like an on hover show t
 
 var player = new SplitPlayer(options);
 
-var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
+var playerTimeManager = player.addPlugin(SplitPlayerPlugins.TimeManager);
 
-playerTimeManager.extend(SplitPlayerTimePicker);
+playerTimeManager.extend(SplitPlayerPlugins.TimePicker);
 ```
 
 `extend()` return the created instance of given module
@@ -263,11 +266,11 @@ player.play().stop().pause().volumeTo(0).timeTo(10).toggle();
 - Native (planned)
 
 ## Dependencies
-- jQuery > 1.8
-- underscoreJS
+- DOMtastic > 0.12.x
+- underscore > 1.8.x
+- node extend > 3.x.x
+- YT iframe api
 
-## Browser Support
-- IE
 
 ## restriction and licence
 

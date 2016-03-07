@@ -1,7 +1,6 @@
 /* globals $ */
 
-var extend = require('extend');
-var $ = require('jquery');
+var $ = require('domtastic');
 
 'use strict';
 
@@ -13,7 +12,7 @@ var SplitPlayerTimeSync = function (timeManager, settings) {
     this.previewedTime = 0;
 
     // extend settings
-    this.settings = extend({}, this.timeManager.settings, {
+    this.settings = $.extend({}, this.timeManager.settings, {
         area: '#timeline',
         template: '<i class="preview-line"><time></time></i>'
     }, settings || {});

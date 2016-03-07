@@ -1,7 +1,7 @@
 /* globals $ */
 
 var extend = require('extend');
-var $ = require('jquery');
+var $ = require('domtastic');
 
 'use strict';
 
@@ -41,10 +41,9 @@ SplitPlayerTimePicker.prototype = {
 
     // show time on mousemove
     _showTime(e) {
+        var leftPos = (e.pageX - this.$timeline[0].offsetLeft);
 
-        var leftPos = (e.pageX - this.$timeline.offset().left);
-
-        var percentage = ((leftPos * 100) / this.$timeline.width());
+        var percentage = ((leftPos * 100) / this.$timeline[0].offsetWidth);
 
         // set to 0 if negative value
         if (percentage < 0) {
@@ -52,8 +51,7 @@ SplitPlayerTimePicker.prototype = {
         }
 
         this.previewedTime = ((this.timeManager.player.duration / 100) * percentage);
-
-        this.$previewLine.width(percentage + '%').find('time').html(
+        this.$previewLine.css('width', percentage + '%').find('time').html(
             this.timeManager._formatTime(this.previewedTime)
         );
     },

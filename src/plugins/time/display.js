@@ -1,7 +1,7 @@
 /* globals $ */
 
 var extend = require('extend');
-var $ = require('jquery');
+var $ = require('domtastic');
 
 'use strict';
 

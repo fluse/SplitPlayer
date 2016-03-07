@@ -2,7 +2,7 @@
 
 var extend = require('extend');
 var getScript = require('./../helper/getScript.js');
-var $ = require('jquery');
+var $ = require('domtastic');
 
 const playerState = require('./../constants');
 

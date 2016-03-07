@@ -1,8 +1,6 @@
-/* globals _, extend, SplitPlayerVideo */
-
 'use strict';
 
-var $ = require('jquery');
+var $ = require('domtastic');
 var extend = require('extend');
 var Ticker = require('./helper/ticker');
 

@@ -1,5 +1,5 @@
 var extend = require('extend');
-var $ = require('jquery');
+var $ = require('domtastic');
 
 'use strict';
 
@@ -54,9 +54,12 @@ SplitPlayerSoundTrack.prototype = {
     },
 
     getActive() {
-        return $(this.settings.area).find('.soundtrack:checked').map(function () {
-            return this.value;
-        }).get();
+        var actives = $(this.settings.area).find('.soundtrack:checked');
+        var activesValue = [];
+        for (var i = 0; i < actives.length; i++) {
+            activesValue.push(actives[i].value);
+        }
+        return activesValue;
     },
 
     _render() {
