@@ -1,6 +1,6 @@
 'use strict';
 
-var extend = function(out) {
+module.exports = function(out) {
   out = out || {};
 
   for (var i = 1; i < arguments.length; i++) {

@@ -3,9 +3,10 @@
 'use strict';
 
 var $ = require('jquery');
+var extend = require('./helper/extend.js');
 var Ticker = require('./helper/ticker');
 var SplitPlayerVideo = require('./video/');
-
+var _ = require('underscore');
 const playerState = require('./constants.js');
 
 var SplitPlayer = function (settings) {
@@ -23,7 +24,7 @@ var SplitPlayer = function (settings) {
     this.plugins = [];
 
     // global player state
-    this.playerStateIs = playerState.inactive;
+    this.playerStateIs = playerState.unstarted;
 
     // ticker for onUpdate interval
     this.ticker = new Ticker(this.onUpdate.bind(this), 500);
@@ -47,6 +48,7 @@ var SplitPlayer = function (settings) {
 
     return this;
 };
+
 
 SplitPlayer.prototype = {
 
@@ -397,3 +399,5 @@ SplitPlayer.prototype = {
     }
 
 };
+
+module.exports = SplitPlayer;

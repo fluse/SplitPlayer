@@ -1,3 +1,3 @@
 module.exports = {
-    youtube: require('./youtube.js');
+    youtube: require('./youtube.js')
 };

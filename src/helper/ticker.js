@@ -2,9 +2,10 @@ var Ticker = function (callback, interval) {
     this.isActive = false;
     this.cycler = null;
 
-    this.callback = callback;
-    this.interval = interval;
+    this.callback = callback || null;
+    this.interval = interval || 1000;
 
+    return this;
 };
 
 Ticker.prototype = {
@@ -20,9 +21,11 @@ Ticker.prototype = {
             return false;
         }
 
-        this.callback();
-
-        this.cycler = window.setTimeout(this.do.bind(this), this.interval);
+        if (this.callback !== null) {
+            this.callback();
+            
+            this.cycler = setTimeout(this.do.bind(this), this.interval);
+        }
     },
 
     stop () {
@@ -31,3 +34,5 @@ Ticker.prototype = {
         clearTimeout(this.cycler);
     }
 };
+
+module.exports = Ticker;
