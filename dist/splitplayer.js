@@ -10794,37 +10794,22 @@ module.exports = function (out) {
 },{}],5:[function(require,module,exports){
 'use strict';
 
-var getScript = function getScript() {};
-getScript.prototype = {
-    require: function require(scripts, callback) {
-        this.loadCount = 0;
-        this.totalRequired = scripts.length;
-        this.callback = callback;
+module.exports = function (url, callback) {
 
-        for (var i = 0; i < scripts.length; i++) {
-            this.writeScript(scripts[i]);
-        }
-    },
-    loaded: function loaded(evt) {
-        this.loadCount++;
+    // Adding the script tag to the head as suggested before
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
 
-        if (this.loadCount == this.totalRequired && typeof this.callback == 'function') this.callback.call();
-    },
-    writeScript: function writeScript(src) {
-        var self = this;
-        var s = document.createElement('script');
-        s.type = "text/javascript";
-        s.async = true;
-        s.src = src;
-        s.addEventListener('load', function (e) {
-            self.loaded(e);
-        }, false);
-        var head = document.getElementsByTagName('head')[0];
-        head.appendChild(s);
-    }
+    // Then bind the event to the callback function.
+    // There are several events for cross browser compatibility.
+    script.onreadystatechange = callback;
+    script.onload = callback;
+
+    // Fire the loading
+    head.appendChild(script);
 };
-
-module.exports = getScript;
 
 },{}],6:[function(require,module,exports){
 "use strict";
@@ -10957,6 +10942,7 @@ SplitPlayer.prototype = {
             for (var _iterator = this.videos[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                 var video = _step.value;
 
+                console.log(video);
                 video.mount();
             }
         } catch (err) {
@@ -11613,6 +11599,10 @@ SplitPlayer.prototype = {
     }
 };
 
+if (typeof window !== 'undefined') {
+    window.SplitPlayer = SplitPlayer;
+}
+
 module.exports = SplitPlayer;
 
 },{"./constants.js":3,"./helper/extend.js":4,"./helper/ticker":6,"./video/":8,"jquery":1,"underscore":2}],8:[function(require,module,exports){
@@ -11630,7 +11620,7 @@ module.exports = {
 var extend = require('./../helper/extend.js');
 var getScript = require('./../helper/getScript.js');
 var $ = require('jquery');
-console.log($.getScript);
+
 var playerState = require('./../constants');
 
 var YoutubeVideo = function YoutubeVideo(player, settings) {
@@ -11661,11 +11651,11 @@ YoutubeVideo.prototype = {
 
         this.loadingDependencies = true;
 
-        getScript(['//youtube.com/iframe_api'], function () {
+        getScript('https://www.youtube.com/iframe_api', function () {
             window.onYouTubeIframeAPIReady = callback;
         });
     },
-    ready: function ready() {
+    mount: function mount() {
         this._render();
         this.create();
     },

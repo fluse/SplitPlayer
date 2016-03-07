@@ -76,6 +76,7 @@ SplitPlayer.prototype = {
 
         // call all dependencie loaded hook
         for (let video of this.videos) {
+            console.log(video);
             video.mount();
         }
         this._dependenciesLoaded = true;
@@ -399,5 +400,9 @@ SplitPlayer.prototype = {
     }
 
 };
+
+if (typeof window !== 'undefined') {
+    window.SplitPlayer = SplitPlayer;
+}
 
 module.exports = SplitPlayer;

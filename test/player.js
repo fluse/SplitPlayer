@@ -10,6 +10,8 @@ var expect = chai.expect;
 describe('SplitPlayer', function() {
     var player = null;
 
+    jsdom();
+
     it('should create instance', function(done) {
 
         player = new SplitPlayer();
@@ -25,7 +27,6 @@ describe('SplitPlayer', function() {
 
         player.should.have.property('settings');
         player.should.have.property('duration');
-
 
         done();
     });
@@ -74,6 +75,18 @@ describe('SplitPlayer', function() {
         });
 
         expect(player.videos).to.have.length(1);
+
+        done();
+    });
+
+    it('should not add duplicate video to player', function(done) {
+
+        var result = player.addVideo({
+            videoId: 'QfrUodC2pbg',
+            hoster: 'youtube',
+            startSeconds: 0,
+            isMuted: true
+        }).should.equal(false);
 
         done();
     });

@@ -1,29 +1,17 @@
-var getScript = function () { }
-getScript.prototype = {
-    require: function (scripts, callback) {
-        this.loadCount      = 0;
-        this.totalRequired  = scripts.length;
-        this.callback       = callback;
+module.exports = function (url, callback) {
 
-        for (var i = 0; i < scripts.length; i++) {
-            this.writeScript(scripts[i]);
-        }
-    },
-    loaded: function (evt) {
-        this.loadCount++;
 
-        if (this.loadCount == this.totalRequired && typeof this.callback == 'function') this.callback.call();
-    },
-    writeScript: function (src) {
-        var self = this;
-        var s = document.createElement('script');
-        s.type = "text/javascript";
-        s.async = true;
-        s.src = src;
-        s.addEventListener('load', function (e) { self.loaded(e); }, false);
-        var head = document.getElementsByTagName('head')[0];
-        head.appendChild(s);
-    }
-}
+    // Adding the script tag to the head as suggested before
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
 
-module.exports = getScript;
+    // Then bind the event to the callback function.
+    // There are several events for cross browser compatibility.
+    script.onreadystatechange = callback;
+    script.onload = callback;
+
+    // Fire the loading
+    head.appendChild(script);
+};

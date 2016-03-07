@@ -5,7 +5,7 @@
 var extend = require('./../helper/extend.js');
 var getScript = require('./../helper/getScript.js');
 var $ = require('jquery');
-console.log($.getScript);
+
 const playerState = require('./../constants');
 
 var YoutubeVideo = function (player, settings) {
@@ -35,13 +35,14 @@ YoutubeVideo.prototype = {
         }
 
         this.loadingDependencies = true;
-        
-        getScript(['//youtube.com/iframe_api'], function () {
-           window.onYouTubeIframeAPIReady = callback;
-       });
+
+        getScript('https://www.youtube.com/iframe_api', function(){
+            window.onYouTubeIframeAPIReady = callback;
+        });
+
     },
 
-    ready() {
+    mount() {
         this._render();
         this.create();
     },
