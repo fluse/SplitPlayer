@@ -1,8 +1,9 @@
-var extend = require('./../../helper/extend.js');
+var extend = require('extend');
 
 'use strict';
 
 var SplitPlayerTimeManager = function (player, settings) {
+    console.log(settings);
     this.player = player;
 
     this.isActive = false;
@@ -58,7 +59,6 @@ SplitPlayerTimeManager.prototype = {
      */
     setTo(playedTime) {
         this.playedTime = playedTime;
-        console.log(playedTime);
         // plugin
         for (let Plugin of this.plugins) {
             if (Plugin.onSetTo) {
@@ -112,3 +112,5 @@ SplitPlayerTimeManager.prototype = {
         this.onStop();
     }
 };
+
+module.exports = SplitPlayerTimeManager;

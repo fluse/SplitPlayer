@@ -2,7 +2,7 @@
 
 'use strict';
 
-var extend = require('./../helper/extend.js');
+var extend = require('extend');
 var getScript = require('./../helper/getScript.js');
 var $ = require('jquery');
 
@@ -36,10 +36,9 @@ YoutubeVideo.prototype = {
 
         this.loadingDependencies = true;
 
-        getScript('https://www.youtube.com/iframe_api', function(){
+        getScript('//youtube.com/iframe_api', function () {
             window.onYouTubeIframeAPIReady = callback;
         });
-
     },
 
     mount() {
@@ -67,7 +66,10 @@ YoutubeVideo.prototype = {
 
     onReady() {
         this.setPlayerDuration();
-        this.mute();
+        if (this.settings.isMuted) {
+            this.mute();
+        }
+        this.timeTo(0);
         this.player.onReady();
     },
 
@@ -108,9 +110,8 @@ YoutubeVideo.prototype = {
 
     timeTo(time) {
 
-        console.log(this.videoPlayer.getPlayerState());
         if (time >= this.getDuration()) {
-            this.stop();
+            this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 
@@ -129,21 +130,17 @@ YoutubeVideo.prototype = {
     },
 
     mute() {
-        if (!this.isMuted) {
-            return false;
-        }
-
         this.videoPlayer.mute();
         this.isMuted = true;
+        this.settings.isMuted = this.isMuted;
+
         return true;
     },
 
     unMute() {
-        if (!this.isMuted) {
-            return false;
-        }
-
         this.isMuted = false;
+        this.settings.isMuted = this.isMuted;
+        this.videoPlayer.unMute();
         this.volumeTo(this.player.settings.volume);
 
         return true;

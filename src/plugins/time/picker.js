@@ -1,4 +1,7 @@
-/* globals $, extend */
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
 
 'use strict';
 
@@ -35,7 +38,6 @@ SplitPlayerTimePicker.prototype = {
             .on('mouseup', this._setTime.bind(this));
     },
 
-
     // show time on mousemove
     _showTime(e) {
 
@@ -66,3 +68,5 @@ SplitPlayerTimePicker.prototype = {
     }
 
 };
+
+module.exports = SplitPlayerTimePicker;

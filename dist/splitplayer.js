@@ -1,4 +1,93 @@
+/* splitplayer 1.1.0 - http://player.splitplay.tv - copyright Holger Schauf */
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+'use strict';
+
+var hasOwn = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+
+var isArray = function isArray(arr) {
+	if (typeof Array.isArray === 'function') {
+		return Array.isArray(arr);
+	}
+
+	return toStr.call(arr) === '[object Array]';
+};
+
+var isPlainObject = function isPlainObject(obj) {
+	if (!obj || toStr.call(obj) !== '[object Object]') {
+		return false;
+	}
+
+	var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+	var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+	// Not own constructor property must be Object
+	if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+		return false;
+	}
+
+	// Own properties are enumerated firstly, so to speed up,
+	// if last one is own, then all properties are own.
+	var key;
+	for (key in obj) {/**/}
+
+	return typeof key === 'undefined' || hasOwn.call(obj, key);
+};
+
+module.exports = function extend() {
+	var options, name, src, copy, copyIsArray, clone,
+		target = arguments[0],
+		i = 1,
+		length = arguments.length,
+		deep = false;
+
+	// Handle a deep copy situation
+	if (typeof target === 'boolean') {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	} else if ((typeof target !== 'object' && typeof target !== 'function') || target == null) {
+		target = {};
+	}
+
+	for (; i < length; ++i) {
+		options = arguments[i];
+		// Only deal with non-null/undefined values
+		if (options != null) {
+			// Extend the base object
+			for (name in options) {
+				src = target[name];
+				copy = options[name];
+
+				// Prevent never-ending loop
+				if (target !== copy) {
+					// Recurse if we're merging plain objects or arrays
+					if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+						if (copyIsArray) {
+							copyIsArray = false;
+							clone = src && isArray(src) ? src : [];
+						} else {
+							clone = src && isPlainObject(src) ? src : {};
+						}
+
+						// Never move original objects, clone them
+						target[name] = extend(deep, clone, copy);
+
+					// Don't bring in undefined values
+					} else if (typeof copy !== 'undefined') {
+						target[name] = copy;
+					}
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
+
+
+},{}],2:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -9210,7 +9299,7 @@ return jQuery;
 
 }));
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -10760,7 +10849,7 @@ return jQuery;
   }
 }.call(this));
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 // player state constants
@@ -10772,23 +10861,6 @@ module.exports = {
     pause: 2,
     buffering: 3,
     loading: 6
-};
-
-},{}],4:[function(require,module,exports){
-'use strict';
-
-module.exports = function (out) {
-  out = out || {};
-
-  for (var i = 1; i < arguments.length; i++) {
-    if (!arguments[i]) continue;
-
-    for (var key in arguments[i]) {
-      if (arguments[i].hasOwnProperty(key)) out[key] = arguments[i][key];
-    }
-  }
-
-  return out;
 };
 
 },{}],5:[function(require,module,exports){
@@ -10866,10 +10938,14 @@ function _toConsumableArray(arr) {
 }
 
 var $ = require('jquery');
-var extend = require('./helper/extend.js');
+var extend = require('extend');
 var Ticker = require('./helper/ticker');
+
 var SplitPlayerVideo = require('./video/');
+var SplitPlayerPlugins = require('./plugins/');
+
 var _ = require('underscore');
+
 var playerState = require('./constants.js');
 
 var SplitPlayer = function SplitPlayer(settings) {
@@ -10887,10 +10963,10 @@ var SplitPlayer = function SplitPlayer(settings) {
     this.plugins = [];
 
     // global player state
-    this.playerStateIs = playerState.unstarted;
+    this.playerStateIs = playerState.inactive;
 
-    // ticker for onUpdate interval
-    this.ticker = new Ticker(this.onUpdate.bind(this), 500);
+    // ticker for onUpdate interval on 0.1 seconds
+    this.ticker = new Ticker(this.onUpdate.bind(this), 100);
 
     // dependencie loading status
     this._dependenciesLoaded = false;
@@ -10906,15 +10982,39 @@ var SplitPlayer = function SplitPlayer(settings) {
 
     this.mount();
 
-    /* add initial declared videos */
-    this.addVideos(this.settings.videos);
-
     return this;
 };
 
 SplitPlayer.prototype = {
     mount: function mount() {
-        this._render();
+        this.create();
+
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = this.plugins[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var Plugin = _step.value;
+
+                if (Plugin.mount) {
+                    Plugin.mount();
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
     },
     create: function create() {
         this._render();
@@ -10934,54 +11034,15 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.loading;
 
         // call all dependencie loaded hook
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = this.videos[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var video = _step.value;
-
-                console.log(video);
-                video.mount();
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
-
-        this._dependenciesLoaded = true;
-
-        console.info('api loaded');
-    },
-    addVideos: function addVideos(videos) {
-
-        // iterate
         var _iteratorNormalCompletion2 = true;
         var _didIteratorError2 = false;
         var _iteratorError2 = undefined;
 
         try {
-            for (var _iterator2 = videos[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            for (var _iterator2 = this.videos[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                 var video = _step2.value;
 
-                // trigger add
-                var addedVideo = this.addVideo(video);
-
-                // if added and all dependencies laoded, mount video
-                if (addedVideo !== false && this._dependenciesLoaded) {
-                    addedVideo.mount();
-                }
+                video.mount();
             }
         } catch (err) {
             _didIteratorError2 = true;
@@ -10994,6 +11055,44 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError2) {
                     throw _iteratorError2;
+                }
+            }
+        }
+
+        this._dependenciesLoaded = true;
+
+        console.info('api loaded');
+    },
+    addVideos: function addVideos(videos) {
+
+        // iterate
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
+
+        try {
+            for (var _iterator3 = videos[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var video = _step3.value;
+
+                // trigger add
+                var addedVideo = this.addVideo(video);
+
+                // if added and all dependencies loaded, mount video
+                if (addedVideo !== false && this._dependenciesLoaded) {
+                    addedVideo.mount();
+                }
+            }
+        } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                }
+            } finally {
+                if (_didIteratorError3) {
+                    throw _iteratorError3;
                 }
             }
         }
@@ -11042,44 +11141,15 @@ SplitPlayer.prototype = {
 
     // destroy all videos and player himself
     destroy: function destroy() {
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
-
-        try {
-            for (var _iterator3 = this.videos[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                var video = _step3.value;
-
-                this.destroyVideo(video.settings.videoId);
-            }
-        } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                    _iterator3.return();
-                }
-            } finally {
-                if (_didIteratorError3) {
-                    throw _iteratorError3;
-                }
-            }
-        }
-
-        this.duration = 0;
-
         var _iteratorNormalCompletion4 = true;
         var _didIteratorError4 = false;
         var _iteratorError4 = undefined;
 
         try {
-            for (var _iterator4 = this.plugins[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                var Plugin = _step4.value;
+            for (var _iterator4 = this.videos[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                var video = _step4.value;
 
-                if (Plugin.destroy) {
-                    Plugin.destroy();
-                }
+                this.destroyVideo(video.settings.videoId);
             }
         } catch (err) {
             _didIteratorError4 = true;
@@ -11092,6 +11162,35 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError4) {
                     throw _iteratorError4;
+                }
+            }
+        }
+
+        this.duration = 0;
+
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
+
+        try {
+            for (var _iterator5 = this.plugins[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                var Plugin = _step5.value;
+
+                if (Plugin.destroy) {
+                    Plugin.destroy();
+                }
+            }
+        } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                    _iterator5.return();
+                }
+            } finally {
+                if (_didIteratorError5) {
+                    throw _iteratorError5;
                 }
             }
         }
@@ -11109,27 +11208,27 @@ SplitPlayer.prototype = {
         this.duration = 0;
         this.stop();
 
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
+        var _iteratorNormalCompletion6 = true;
+        var _didIteratorError6 = false;
+        var _iteratorError6 = undefined;
 
         try {
-            for (var _iterator5 = this.videos[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                var video = _step5.value;
+            for (var _iterator6 = this.videos[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                var video = _step6.value;
 
                 this.destroyVideo(video.settings.videoId);
             }
         } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
         } finally {
             try {
-                if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                    _iterator5.return();
+                if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                    _iterator6.return();
                 }
             } finally {
-                if (_didIteratorError5) {
-                    throw _iteratorError5;
+                if (_didIteratorError6) {
+                    throw _iteratorError6;
                 }
             }
         }
@@ -11147,29 +11246,29 @@ SplitPlayer.prototype = {
         this.videos = _.without(this.videos, video);
 
         // reinit playerDuration
-        var _iteratorNormalCompletion6 = true;
-        var _didIteratorError6 = false;
-        var _iteratorError6 = undefined;
+        var _iteratorNormalCompletion7 = true;
+        var _didIteratorError7 = false;
+        var _iteratorError7 = undefined;
 
         try {
-            for (var _iterator6 = this.videos[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                var thisVideo = _step6.value;
+            for (var _iterator7 = this.videos[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                var thisVideo = _step7.value;
 
                 thisVideo.setPlayerDuration();
             }
 
             // and set readyCount one lower;
         } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
         } finally {
             try {
-                if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                    _iterator6.return();
+                if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                    _iterator7.return();
                 }
             } finally {
-                if (_didIteratorError6) {
-                    throw _iteratorError6;
+                if (_didIteratorError7) {
+                    throw _iteratorError7;
                 }
             }
         }
@@ -11195,35 +11294,6 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.ready;
 
         // hook onReady for plugins
-        var _iteratorNormalCompletion7 = true;
-        var _didIteratorError7 = false;
-        var _iteratorError7 = undefined;
-
-        try {
-            for (var _iterator7 = this.plugins[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                var Plugin = _step7.value;
-
-                if (Plugin.onReady) {
-                    Plugin.onReady();
-                }
-            }
-        } catch (err) {
-            _didIteratorError7 = true;
-            _iteratorError7 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion7 && _iterator7.return) {
-                    _iterator7.return();
-                }
-            } finally {
-                if (_didIteratorError7) {
-                    throw _iteratorError7;
-                }
-            }
-        }
-    },
-    onUpdate: function onUpdate() {
-        // hook all plugins
         var _iteratorNormalCompletion8 = true;
         var _didIteratorError8 = false;
         var _iteratorError8 = undefined;
@@ -11232,8 +11302,8 @@ SplitPlayer.prototype = {
             for (var _iterator8 = this.plugins[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
                 var Plugin = _step8.value;
 
-                if (Plugin.onUpdate) {
-                    Plugin.onUpdate();
+                if (Plugin.onReady) {
+                    Plugin.onReady();
                 }
             }
         } catch (err) {
@@ -11247,6 +11317,35 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError8) {
                     throw _iteratorError8;
+                }
+            }
+        }
+    },
+    onUpdate: function onUpdate() {
+        // hook all plugins
+        var _iteratorNormalCompletion9 = true;
+        var _didIteratorError9 = false;
+        var _iteratorError9 = undefined;
+
+        try {
+            for (var _iterator9 = this.plugins[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                var Plugin = _step9.value;
+
+                if (Plugin.onUpdate) {
+                    Plugin.onUpdate();
+                }
+            }
+        } catch (err) {
+            _didIteratorError9 = true;
+            _iteratorError9 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                    _iterator9.return();
+                }
+            } finally {
+                if (_didIteratorError9) {
+                    throw _iteratorError9;
                 }
             }
         }
@@ -11279,13 +11378,13 @@ SplitPlayer.prototype = {
         // start ticker
         this.ticker.start();
 
-        var _iteratorNormalCompletion9 = true;
-        var _didIteratorError9 = false;
-        var _iteratorError9 = undefined;
+        var _iteratorNormalCompletion10 = true;
+        var _didIteratorError10 = false;
+        var _iteratorError10 = undefined;
 
         try {
-            for (var _iterator9 = this.videos[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-                var video = _step9.value;
+            for (var _iterator10 = this.videos[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                var video = _step10.value;
 
                 if (video.getDuration() >= this.getPlayedTime()) {
                     video.play();
@@ -11293,33 +11392,6 @@ SplitPlayer.prototype = {
             }
 
             // hook onPlay for plugins
-        } catch (err) {
-            _didIteratorError9 = true;
-            _iteratorError9 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion9 && _iterator9.return) {
-                    _iterator9.return();
-                }
-            } finally {
-                if (_didIteratorError9) {
-                    throw _iteratorError9;
-                }
-            }
-        }
-
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
-
-        try {
-            for (var _iterator10 = this.plugins[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-                var Plugin = _step10.value;
-
-                if (Plugin.onPlay) {
-                    Plugin.onPlay();
-                }
-            }
         } catch (err) {
             _didIteratorError10 = true;
             _iteratorError10 = err;
@@ -11331,6 +11403,33 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError10) {
                     throw _iteratorError10;
+                }
+            }
+        }
+
+        var _iteratorNormalCompletion11 = true;
+        var _didIteratorError11 = false;
+        var _iteratorError11 = undefined;
+
+        try {
+            for (var _iterator11 = this.plugins[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                var Plugin = _step11.value;
+
+                if (Plugin.onPlay) {
+                    Plugin.onPlay();
+                }
+            }
+        } catch (err) {
+            _didIteratorError11 = true;
+            _iteratorError11 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                    _iterator11.return();
+                }
+            } finally {
+                if (_didIteratorError11) {
+                    throw _iteratorError11;
                 }
             }
         }
@@ -11350,45 +11449,18 @@ SplitPlayer.prototype = {
         }
 
         // pause all videos
-        var _iteratorNormalCompletion11 = true;
-        var _didIteratorError11 = false;
-        var _iteratorError11 = undefined;
-
-        try {
-            for (var _iterator11 = this.videos[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-                var video = _step11.value;
-
-                video.pause();
-            }
-
-            // hook all plugins
-        } catch (err) {
-            _didIteratorError11 = true;
-            _iteratorError11 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion11 && _iterator11.return) {
-                    _iterator11.return();
-                }
-            } finally {
-                if (_didIteratorError11) {
-                    throw _iteratorError11;
-                }
-            }
-        }
-
         var _iteratorNormalCompletion12 = true;
         var _didIteratorError12 = false;
         var _iteratorError12 = undefined;
 
         try {
-            for (var _iterator12 = this.plugins[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-                var Plugin = _step12.value;
+            for (var _iterator12 = this.videos[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                var video = _step12.value;
 
-                if (Plugin.onPause) {
-                    Plugin.onPause();
-                }
+                video.pause();
             }
+
+            // hook all plugins
         } catch (err) {
             _didIteratorError12 = true;
             _iteratorError12 = err;
@@ -11400,6 +11472,33 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError12) {
                     throw _iteratorError12;
+                }
+            }
+        }
+
+        var _iteratorNormalCompletion13 = true;
+        var _didIteratorError13 = false;
+        var _iteratorError13 = undefined;
+
+        try {
+            for (var _iterator13 = this.plugins[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                var Plugin = _step13.value;
+
+                if (Plugin.onPause) {
+                    Plugin.onPause();
+                }
+            }
+        } catch (err) {
+            _didIteratorError13 = true;
+            _iteratorError13 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion13 && _iterator13.return) {
+                    _iterator13.return();
+                }
+            } finally {
+                if (_didIteratorError13) {
+                    throw _iteratorError13;
                 }
             }
         }
@@ -11429,13 +11528,13 @@ SplitPlayer.prototype = {
         }
 
         // pause all videos
-        var _iteratorNormalCompletion13 = true;
-        var _didIteratorError13 = false;
-        var _iteratorError13 = undefined;
+        var _iteratorNormalCompletion14 = true;
+        var _didIteratorError14 = false;
+        var _iteratorError14 = undefined;
 
         try {
-            for (var _iterator13 = this.videos[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-                var video = _step13.value;
+            for (var _iterator14 = this.videos[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+                var video = _step14.value;
 
                 if (video.getPlayerState() !== 0) {
                     video.stop();
@@ -11443,33 +11542,6 @@ SplitPlayer.prototype = {
             }
 
             // hook all plugins
-        } catch (err) {
-            _didIteratorError13 = true;
-            _iteratorError13 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion13 && _iterator13.return) {
-                    _iterator13.return();
-                }
-            } finally {
-                if (_didIteratorError13) {
-                    throw _iteratorError13;
-                }
-            }
-        }
-
-        var _iteratorNormalCompletion14 = true;
-        var _didIteratorError14 = false;
-        var _iteratorError14 = undefined;
-
-        try {
-            for (var _iterator14 = this.plugins[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-                var Plugin = _step14.value;
-
-                if (Plugin.onStop) {
-                    Plugin.onStop();
-                }
-            }
         } catch (err) {
             _didIteratorError14 = true;
             _iteratorError14 = err;
@@ -11485,20 +11557,17 @@ SplitPlayer.prototype = {
             }
         }
 
-        this.playerStateIs = playerState.unstarted;
-
-        return this;
-    },
-    timeTo: function timeTo(time) {
         var _iteratorNormalCompletion15 = true;
         var _didIteratorError15 = false;
         var _iteratorError15 = undefined;
 
         try {
-            for (var _iterator15 = this.videos[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-                var video = _step15.value;
+            for (var _iterator15 = this.plugins[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+                var Plugin = _step15.value;
 
-                video.timeTo(time);
+                if (Plugin.onStop) {
+                    Plugin.onStop();
+                }
             }
         } catch (err) {
             _didIteratorError15 = true;
@@ -11515,18 +11584,11 @@ SplitPlayer.prototype = {
             }
         }
 
+        this.playerStateIs = playerState.unstarted;
+
         return this;
     },
-    volumeTo: function volumeTo(percentage) {
-
-        if (percentage > 100) {
-            percentage = 100;
-        } else if (percentage < 0) {
-            percentage = 0;
-        }
-
-        this.settings.volume = percentage;
-
+    timeTo: function timeTo(time) {
         var _iteratorNormalCompletion16 = true;
         var _didIteratorError16 = false;
         var _iteratorError16 = undefined;
@@ -11535,7 +11597,7 @@ SplitPlayer.prototype = {
             for (var _iterator16 = this.videos[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
                 var video = _step16.value;
 
-                video.volumeTo(percentage);
+                video.timeTo(time);
             }
         } catch (err) {
             _didIteratorError16 = true;
@@ -11554,8 +11616,7 @@ SplitPlayer.prototype = {
 
         return this;
     },
-    _videosInState: function _videosInState(state) {
-        var inState = true;
+    mute: function mute() {
         var _iteratorNormalCompletion17 = true;
         var _didIteratorError17 = false;
         var _iteratorError17 = undefined;
@@ -11564,9 +11625,7 @@ SplitPlayer.prototype = {
             for (var _iterator17 = this.videos[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
                 var video = _step17.value;
 
-                if (video.getPlayerState() === state && inState) {
-                    inState = false;
-                }
+                video.mute();
             }
         } catch (err) {
             _didIteratorError17 = true;
@@ -11579,6 +11638,72 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError17) {
                     throw _iteratorError17;
+                }
+            }
+        }
+    },
+    volumeTo: function volumeTo(percentage) {
+
+        if (percentage > 100) {
+            percentage = 100;
+        } else if (percentage < 0) {
+            percentage = 0;
+        }
+
+        this.settings.volume = percentage;
+
+        var _iteratorNormalCompletion18 = true;
+        var _didIteratorError18 = false;
+        var _iteratorError18 = undefined;
+
+        try {
+            for (var _iterator18 = this.videos[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+                var video = _step18.value;
+
+                video.volumeTo(percentage);
+            }
+        } catch (err) {
+            _didIteratorError18 = true;
+            _iteratorError18 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion18 && _iterator18.return) {
+                    _iterator18.return();
+                }
+            } finally {
+                if (_didIteratorError18) {
+                    throw _iteratorError18;
+                }
+            }
+        }
+
+        return this;
+    },
+    _videosInState: function _videosInState(state) {
+        var inState = true;
+        var _iteratorNormalCompletion19 = true;
+        var _didIteratorError19 = false;
+        var _iteratorError19 = undefined;
+
+        try {
+            for (var _iterator19 = this.videos[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+                var video = _step19.value;
+
+                if (video.getPlayerState() === state && inState) {
+                    inState = false;
+                }
+            }
+        } catch (err) {
+            _didIteratorError19 = true;
+            _iteratorError19 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion19 && _iterator19.return) {
+                    _iterator19.return();
+                }
+            } finally {
+                if (_didIteratorError19) {
+                    throw _iteratorError19;
                 }
             }
         }
@@ -11605,19 +11730,748 @@ if (typeof window !== 'undefined') {
 
 module.exports = SplitPlayer;
 
-},{"./constants.js":3,"./helper/extend.js":4,"./helper/ticker":6,"./video/":8,"jquery":1,"underscore":2}],8:[function(require,module,exports){
+},{"./constants.js":4,"./helper/ticker":6,"./plugins/":9,"./video/":17,"extend":1,"jquery":2,"underscore":3}],8:[function(require,module,exports){
+'use strict';
+
+var extend = require('extend');
+
+'use strict';
+
+var SplitPlayerAnalytics = function SplitPlayerAnalytics(player, settings) {
+    this.player = player;
+
+    // extend settings
+    this.settings = extend({}, this.player.settings, {}, settings || {});
+
+    return this;
+};
+
+SplitPlayerAnalytics.prototype = {
+    onPlay: function onPlay() {
+        this.track('play');
+    },
+    onPause: function onPause() {
+        this.track('pause');
+    },
+    onStop: function onStop() {
+        this.track('stop');
+    },
+    setTo: function setTo(timeData) {
+        this.track('setTimeTo', timeData.playedTime);
+    },
+    track: function track(label, value) {
+        if (typeof _trackEvent !== 'undefined') {
+            _trackEvent('splitplayer', 'click', label, value || null);
+        }
+    }
+};
+
+module.exports = SplitPlayerAnalytics;
+
+},{"extend":1}],9:[function(require,module,exports){
+'use strict';
+
+var SplitPlayerPlugins = {
+    TimeManager: require('./time/manager.js'),
+    TimeLine: require('./time/line.js'),
+    TimeSync: require('./time/sync.js'),
+    TimePicker: require('./time/picker.js'),
+    TimeDisplay: require('./time/display.js'),
+    SoundManager: require('./sound/manager.js'),
+    SoundTrack: require('./sound/track.js'),
+    Analytics: require('./analytics.js')
+};
+
+if (typeof window !== 'undefined') {
+    window.SplitPlayerPlugins = SplitPlayerPlugins;
+}
+module.exports = SplitPlayerPlugins;
+
+},{"./analytics.js":8,"./sound/manager.js":10,"./sound/track.js":11,"./time/display.js":12,"./time/line.js":13,"./time/manager.js":14,"./time/picker.js":15,"./time/sync.js":16}],10:[function(require,module,exports){
+'use strict';
+
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
+
+'use strict';
+
+var SplitPlayerSoundManager = function SplitPlayerSoundManager(player, settings) {
+    this.player = player;
+
+    this.$volume = null;
+
+    this.plugins = [];
+
+    // extend settings
+    this.settings = extend(true, {}, this.player.settings, {
+        sound: {
+            min: 0,
+            max: 100,
+            default: 100
+        },
+        area: null,
+        template: '<input class="volume-slider" type="range" min="%min%" max="%max%" value="%default%" />'
+    }, settings || {});
+
+    this.mount();
+
+    return this;
+};
+
+SplitPlayerSoundManager.prototype = {
+
+    /*
+     * extend Module
+     */
+
+    extend: function extend(Module, settings) {
+        Module = new Module(this, settings || {});
+
+        // push internal
+        this.plugins.push(Module);
+
+        // push to player plugins for other hooks
+        return this.player.plugins.push(Module);
+    },
+    onUpdate: function onUpdate() {
+        console.log('test');
+    },
+    mount: function mount() {
+        this._render();
+        this._setEvents();
+    },
+
+    // set mousemove and click event
+    _setEvents: function _setEvents() {
+        this.$volume.on('change', this.setVolume.bind(this));
+    },
+    setVolume: function setVolume(event) {
+        this.player.volumeTo($(event.target).val());
+    },
+    _render: function _render() {
+        if (this.settings.area === null) {
+            return console.error('no dropArea for soundManager defined');
+        }
+
+        var template = this.settings.template;
+
+        // replace params
+        for (var placeholder in this.settings.sound) {
+            template = template.replace('%' + placeholder + '%', this.settings.sound[placeholder]);
+        }
+
+        $(this.settings.area).append(template);
+        this.$volume = $(this.settings.area).find('.volume-slider');
+    },
+    destroy: function destroy() {
+        this.$volume.remove();
+    }
+};
+
+module.exports = SplitPlayerSoundManager;
+
+},{"extend":1,"jquery":2}],11:[function(require,module,exports){
+'use strict';
+
+var extend = require('extend');
+var $ = require('jquery');
+
+'use strict';
+
+var SplitPlayerSoundTrack = function SplitPlayerSoundTrack(soundManager, settings) {
+    this.soundManager = soundManager;
+
+    this.$trackList = null;
+    console.log(this.soundManager);
+    // extend settings
+    this.settings = extend({}, this.soundManager.player.settings, {
+        area: null,
+        template: '<label><input class="soundtrack" name="soundTracks[]" %checked% type="radio" value="%videoId%" /></label>'
+    }, settings || {});
+
+    this.mount();
+
+    return this;
+};
+
+SplitPlayerSoundTrack.prototype = {
+    mount: function mount() {
+        this._render();
+        this._setEvents();
+    },
+
+    // set mousemove and click event
+    _setEvents: function _setEvents() {
+        if (this.trackList !== null) {
+            this.$trackList.on('click', this.setSound.bind(this));
+        }
+    },
+    setSound: function setSound() {
+
+        var activeVideos = this.getActive();
+
+        var player = this.soundManager.player;
+        // first mute all videos
+        player.mute();
+
+        // than activate given list
+        for (var i = 0; i < activeVideos.length; i++) {
+
+            var video = player.getVideo(activeVideos[i]);
+
+            if (video !== false) {
+                video.unMute();
+            }
+        }
+    },
+    getActive: function getActive() {
+        return $(this.settings.area).find('.soundtrack:checked').map(function () {
+            return this.value;
+        }).get();
+    },
+    _render: function _render() {
+        if (this.settings.area === null) {
+            return console.error('no dropArea for SoundTrack defined');
+        }
+
+        var template = '';
+
+        var videos = this.soundManager.player.videos;
+
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = videos[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var video = _step.value;
+
+                // replace params
+                template += this.settings.template.replace('%videoId%', video.settings.videoId).replace('%checked%', video.settings.isMuted ? '' : 'checked');
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        $(this.settings.area).append(template);
+        this.$trackList = $(this.settings.area).find('.soundtrack');
+    },
+    destroy: function destroy() {
+        this.$trackList.remove();
+    }
+};
+
+module.exports = SplitPlayerSoundTrack;
+
+},{"extend":1,"jquery":2}],12:[function(require,module,exports){
+'use strict';
+
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
+
+'use strict';
+
+var SplitPlayerTimeDisplay = function SplitPlayerTimeDisplay(timeManager, settings) {
+    this.timeManager = timeManager;
+    this.$display = null;
+    this.$duration = null;
+    this.$current = null;
+
+    // extend settings
+    this.settings = extend({}, this.timeManager.settings, {
+        area: null,
+        template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
+    }, settings);
+
+    this.mount();
+    return this;
+};
+
+SplitPlayerTimeDisplay.prototype = {
+    mount: function mount() {
+        this._render();
+    },
+    onReady: function onReady() {
+        this.onSetTo(this.timeManager.getData());
+    },
+    onSetTo: function onSetTo(data) {
+        this.$duration.html(data.durationFormatted);
+        this.$current.html(data.playedTimeFormatted);
+    },
+    _render: function _render() {
+        if (this.settings.area === null) {
+            return console.error('no dropArea for timeDisplay defined');
+        }
+
+        this.$display = $(this.settings.area);
+        this.$display.append(this.settings.template);
+
+        this.$duration = this.$display.find('.duration');
+        this.$current = this.$display.find('.current');
+    },
+    destroy: function destroy() {
+        this.$display.remove();
+    }
+};
+
+module.exports = SplitPlayerTimeDisplay;
+
+},{"extend":1,"jquery":2}],13:[function(require,module,exports){
+'use strict';
+
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
+
+'use strict';
+
+var SplitPlayerTimeLine = function SplitPlayerTimeLine(timeManager, settings) {
+    this.timeManager = timeManager;
+
+    // register timeline inside timeManager
+    this.timeManager.timeline = null;
+
+    this.$bar = null;
+
+    // extend settings
+    this.settings = extend({}, this.timeManager.settings, {
+        template: '<div id="timeline"><i class="bar"></i></div>'
+    }, settings);
+
+    this.mount();
+
+    return this;
+};
+
+SplitPlayerTimeLine.prototype = {
+    mount: function mount() {
+        this._render();
+    },
+
+    /*
+     * player onReady hook
+     */
+    onReady: function onReady() {
+        this.isActive = true;
+    },
+
+    /*
+     * player onStop hook
+     */
+    onStop: function onStop() {
+        this._reset();
+    },
+
+    /*
+     * timeManager onSetTo hook
+     */
+    onSetTo: function onSetTo(data) {
+        this.$bar.css({
+            width: data.percentage + '%'
+        });
+    },
+    _reset: function _reset() {
+        this.$bar.css({
+            width: 0
+        });
+    },
+    _render: function _render() {
+        var dom = $(this.settings.area).append(this.settings.template);
+
+        this.timeManager.$timeline = dom.find('#timeline');
+        this.$bar = this.timeManager.$timeline.find('i');
+    },
+    destroy: function destroy() {
+        this.timeManager.$timeline.remove();
+    }
+};
+
+module.exports = SplitPlayerTimeLine;
+
+},{"extend":1,"jquery":2}],14:[function(require,module,exports){
+'use strict';
+
+var extend = require('extend');
+
+'use strict';
+
+var SplitPlayerTimeManager = function SplitPlayerTimeManager(player, settings) {
+    console.log(settings);
+    this.player = player;
+
+    this.isActive = false;
+    this.playedTime = 0;
+
+    this.plugins = [];
+
+    // extend player settings
+    this.settings = extend({}, this.player.settings, {}, settings || {});
+
+    return this;
+};
+
+SplitPlayerTimeManager.prototype = {
+
+    /*
+     * extend Module
+     */
+
+    extend: function extend(Module, settings) {
+        Module = new Module(this, settings || {});
+
+        // push internal
+        this.plugins.push(Module);
+
+        // push to player plugins for other hooks
+        return this.player.plugins.push(Module);
+    },
+
+    /*
+     * player onReady hook
+     */
+    onReady: function onReady() {
+        this.isActive = true;
+    },
+
+    /*
+     * player onUpdate hook
+     */
+    onUpdate: function onUpdate() {
+        this.setTo(this.player.getPlayedTime());
+    },
+
+    /*
+     * player onStop hook
+     */
+    onStop: function onStop() {
+        this.playedTime = 0;
+    },
+
+    /*
+     * Set Time to
+     */
+    setTo: function setTo(playedTime) {
+        this.playedTime = playedTime;
+        // plugin
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = this.plugins[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var Plugin = _step.value;
+
+                if (Plugin.onSetTo) {
+                    Plugin.onSetTo(this.getData());
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+    },
+
+    /*
+     * get all time data from player
+     */
+    getData: function getData() {
+        // get percentage
+        var percentage = this.playedTime * 100 / this.player.duration;
+        // player duration
+        var duration = this.player.duration;
+
+        // formatted playedTime
+        var playedTimeFormatted = this._formatTime(this.playedTime);
+        // formatted duration
+        var durationFormatted = this._formatTime(duration);
+
+        return {
+            percentage: percentage,
+            playedTime: this.playedTime,
+            playedTimeFormatted: playedTimeFormatted,
+            duration: duration,
+            durationFormatted: durationFormatted
+        };
+    },
+    _formatTime: function _formatTime(timeInplayedTime) {
+        // convert to minutes
+        var minutes = Math.floor(timeInplayedTime / 60);
+        // convert seconds
+        var seconds = Math.round(timeInplayedTime - minutes * 60);
+
+        if (seconds < 10) {
+            seconds = '0' + seconds;
+        }
+
+        if (seconds === 60) {
+            seconds = '00';
+            minutes++;
+        }
+
+        return minutes + ':' + seconds;
+    },
+    destroy: function destroy() {
+        this.onStop();
+    }
+};
+
+module.exports = SplitPlayerTimeManager;
+
+},{"extend":1}],15:[function(require,module,exports){
+'use strict';
+
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
+
+'use strict';
+
+var SplitPlayerTimePicker = function SplitPlayerTimePicker(timeManager, settings) {
+    this.timeManager = timeManager;
+
+    this.$timeline = this.timeManager.$timeline;
+    this.$previewLine = null;
+
+    this.previewedTime = 0;
+
+    // extend settings
+    this.settings = extend({}, this.timeManager.settings, {
+        area: '#timeline',
+        template: '<i class="preview-line"><time></time></i>'
+    }, settings || {});
+
+    this.mount();
+
+    return this;
+};
+
+SplitPlayerTimePicker.prototype = {
+    mount: function mount() {
+        this._render();
+        this._setEvents();
+    },
+
+    // set mousemove and click event
+    _setEvents: function _setEvents() {
+        this.$timeline.on('mousemove', this._showTime.bind(this)).on('mouseup', this._setTime.bind(this));
+    },
+
+    // show time on mousemove
+    _showTime: function _showTime(e) {
+
+        var leftPos = e.pageX - this.$timeline.offset().left;
+
+        var percentage = leftPos * 100 / this.$timeline.width();
+
+        // set to 0 if negative value
+        if (percentage < 0) {
+            percentage = 0;
+        }
+
+        this.previewedTime = this.timeManager.player.duration / 100 * percentage;
+
+        this.$previewLine.width(percentage + '%').find('time').html(this.timeManager._formatTime(this.previewedTime));
+    },
+
+    // set time on click
+    _setTime: function _setTime() {
+        this.timeManager.player.timeTo(this.previewedTime);
+    },
+    _render: function _render() {
+        this.$timeline.append(this.settings.template);
+        this.$previewLine = this.$timeline.find('.preview-line');
+    }
+};
+
+module.exports = SplitPlayerTimePicker;
+
+},{"extend":1,"jquery":2}],16:[function(require,module,exports){
+'use strict';
+
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
+
+'use strict';
+
+var SplitPlayerTimeSync = function SplitPlayerTimeSync(timeManager, settings) {
+    this.timeManager = timeManager;
+
+    this.timeline = this.timeManager.timeline;
+
+    this.previewedTime = 0;
+
+    // extend settings
+    this.settings = extend({}, this.timeManager.settings, {
+        area: '#timeline',
+        template: '<i class="preview-line"><time></time></i>'
+    }, settings || {});
+
+    this._render();
+    this._setEvents();
+
+    return this;
+};
+
+SplitPlayerTimeSync.prototype = {
+
+    seconds: {},
+    stepValue: 0.1,
+    interval: null,
+
+    setEvents: function setEvents() {
+        var self = this;
+        $('.time-set-button-up').off('mousedown').on('mousedown', function (e) {
+            e.preventDefault();
+
+            self.start('increase', $(this).attr('videoId'));
+        }).off('mouseup').on('mouseup', function (e) {
+            e.preventDefault();
+
+            self.stop();
+        }).off('mouseleave').on('mouseleave', this.stop.bind(this));
+
+        $('.time-set-button-down').off('mousedown').on('mousedown', function (e) {
+            e.preventDefault();
+
+            self.start('decrease', $(this).attr('videoId'));
+        }).off('mouseup').on('mouseup', function (e) {
+            e.preventDefault();
+
+            self.stop();
+        }).off('mouseleave').on('mouseleave', this.stop.bind(this));
+
+        $('.time-set-input').change(function () {
+            var videoId = $(this).attr('videoId');
+
+            self.seconds[videoId] = parseFloat($(this).val());
+
+            // set seconds
+            var video = sp.player.getVideoByVideoId(videoId);
+            video.player.seekTo(self.seconds[videoId]);
+            self.setStartSeconds(videoId, self.seconds[videoId]);
+        });
+    },
+
+    // start auto increasing
+    start: function start(action, videoId) {
+        var self = this;
+        self[action](videoId);
+
+        // action = increase or decrease
+        this.interval = window.setInterval(function () {
+            self[action](videoId);
+        }, 100);
+    },
+
+    // stop auto increasing
+    stop: function stop() {
+        window.clearInterval(this.interval);
+    },
+    increase: function increase(videoId) {
+
+        if (typeof this.seconds[videoId] === 'undefined') {
+            this.seconds[videoId] = this.stepValue;
+        } else {
+            this.seconds[videoId] = parseFloat(this.seconds[videoId]) + parseFloat(this.stepValue);
+        }
+
+        // round to decimal
+        this.seconds[videoId] = this.roundDecimal(this.seconds[videoId]);
+
+        this.setStartSeconds(videoId, this.seconds[videoId]);
+    },
+    decrease: function decrease(videoId) {
+
+        // prevent if is 0
+        if (this.seconds[videoId] === 0) {
+            return false;
+        }
+
+        // set default value if no is defined
+        if (typeof this.seconds[videoId] === 'undefined') {
+            this.seconds[videoId] = 0;
+
+            // increase
+        } else {
+                if (this.seconds[videoId] > 0) {
+                    this.seconds[videoId] = parseFloat(this.seconds[videoId]) - parseFloat(this.stepValue);
+                }
+            }
+
+        // round to decimal
+        this.seconds[videoId] = this.roundDecimal(this.seconds[videoId]);
+
+        this.setStartSeconds(videoId, this.seconds[videoId]);
+    },
+    roundDecimal: function roundDecimal(val) {
+        return parseFloat(Math.round(val * 100) / 100);
+    },
+    setStartSeconds: function setStartSeconds(videoId, startSeconds) {
+
+        var video = sp.player.getVideoByVideoId(videoId);
+        video.startSeconds = startSeconds;
+
+        // write to input
+        $('#' + videoId + 'Number').val(startSeconds);
+
+        this.sync();
+    },
+    sync: function sync() {
+        // sort videos by startSeconds ASC
+        var sortedArray = _.sortBy(sp.player.selectedVideos, 'startSeconds');
+
+        var time = parseFloat(parseFloat(parseFloat(sortedArray[0].player.getCurrentTime()) - parseFloat(sortedArray[0].startSeconds)));
+
+        sp.player.setTime(time);
+
+        console.log('video time: %s', time);
+    }
+};
+
+module.exports = SplitPlayerTimeSync;
+
+},{"extend":1,"jquery":2}],17:[function(require,module,exports){
 'use strict';
 
 module.exports = {
     youtube: require('./youtube.js')
 };
 
-},{"./youtube.js":9}],9:[function(require,module,exports){
+},{"./youtube.js":18}],18:[function(require,module,exports){
 /* globals YT */
 
 'use strict';
 
-var extend = require('./../helper/extend.js');
+var extend = require('extend');
 var getScript = require('./../helper/getScript.js');
 var $ = require('jquery');
 
@@ -11651,7 +12505,7 @@ YoutubeVideo.prototype = {
 
         this.loadingDependencies = true;
 
-        getScript('https://www.youtube.com/iframe_api', function () {
+        getScript('//youtube.com/iframe_api', function () {
             window.onYouTubeIframeAPIReady = callback;
         });
     },
@@ -11678,7 +12532,10 @@ YoutubeVideo.prototype = {
     },
     onReady: function onReady() {
         this.setPlayerDuration();
-        this.mute();
+        if (this.settings.isMuted) {
+            this.mute();
+        }
+        this.timeTo(0);
         this.player.onReady();
     },
     onError: function onError(err) {
@@ -11714,9 +12571,8 @@ YoutubeVideo.prototype = {
     },
     timeTo: function timeTo(time) {
 
-        console.log(this.videoPlayer.getPlayerState());
         if (time >= this.getDuration()) {
-            this.stop();
+            this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 
@@ -11733,20 +12589,16 @@ YoutubeVideo.prototype = {
         return true;
     },
     mute: function mute() {
-        if (!this.isMuted) {
-            return false;
-        }
-
         this.videoPlayer.mute();
         this.isMuted = true;
+        this.settings.isMuted = this.isMuted;
+
         return true;
     },
     unMute: function unMute() {
-        if (!this.isMuted) {
-            return false;
-        }
-
         this.isMuted = false;
+        this.settings.isMuted = this.isMuted;
+        this.videoPlayer.unMute();
         this.volumeTo(this.player.settings.volume);
 
         return true;
@@ -11790,4 +12642,4 @@ YoutubeVideo.prototype = {
 
 module.exports = YoutubeVideo;
 
-},{"./../constants":3,"./../helper/extend.js":4,"./../helper/getScript.js":5,"jquery":1}]},{},[7]);
+},{"./../constants":4,"./../helper/getScript.js":5,"extend":1,"jquery":2}]},{},[7]);

@@ -1,4 +1,7 @@
-/* globals $, extend */
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
 
 'use strict';
 
@@ -50,3 +53,5 @@ SplitPlayerTimeDisplay.prototype = {
     }
 
 };
+
+module.exports = SplitPlayerTimeDisplay;

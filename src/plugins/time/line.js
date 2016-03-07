@@ -1,4 +1,7 @@
-/* globals $, extend */
+/* globals $ */
+
+var extend = require('extend');
+var $ = require('jquery');
 
 'use strict';
 
@@ -66,3 +69,5 @@ SplitPlayerTimeLine.prototype = {
         this.timeManager.$timeline.remove();
     }
 };
+
+module.exports = SplitPlayerTimeLine;

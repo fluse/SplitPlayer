@@ -10,36 +10,41 @@
     <body>
 
         <div id="videoPlayer">
-        </div>
+       </div>
 
-        <div class="grd-1">
-            <div id="playerTimeline">
+       <div class="grd-1">
+           <div id="playerTimeline">
 
-            </div>
-        </div>
+           </div>
+       </div>
 
-        <div id="playerTimeDisplay">
+       <div id="playerTimeDisplay">
 
-        </div>
+       </div>
 
-        <div id="splitPlayerController">
+       <div id="splitPlayerController">
 
-            <span onclick="player.play()">play</span>
-            <span onclick="player.pause()">pause</span>
-            <span onclick="player.stop()">stop</span>
-            <span onclick="player.toggle()">toggle</span>
-        </div>
+           <span onclick="player.play()">play</span>
+           <span onclick="player.pause()">pause</span>
+           <span onclick="player.stop()">stop</span>
+           <span onclick="player.toggle()">toggle</span>
+       </div>
 
-        <div class="settings grd-1">
-            <span onclick="player.empty()">empty player</span>
-            <span onclick="player.destroy()">destroy player</span>
-            <span onclick="player.create()">create player</span>
-            <span onclick="player.addVideos(videos)">add videos</span>
-            <label>
-                add youtube video
-                <input type="input" value="" />
-            </label>
-        </div>
+       <div id="soundTracks" class="grd-1 txt-cnr">
+           <h3>Set Soundtracks</h3>
+       </div>
+
+       <div class="settings grd-1 txt-cnr">
+           <h3>Settings</h3>
+           <span onclick="player.empty()">empty player</span>
+           <span onclick="player.destroy()">destroy player</span>
+           <span onclick="player.mount()">create player</span>
+           <span onclick="player.addVideos(videos)">add videos</span>
+           <label>
+               add youtube video
+               <input type="input" value="" />
+           </label>
+       </div>
 
         <script src="../dist/splitplayer.js"></script>
 
@@ -66,34 +71,34 @@
                 area: '#videoPlayer',
                 videos: videos
             });
-/*
-            var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 
-            var playerSoundManager = player.addPlugin(SplitPlayerSoundManager, {
+            var playerTimeManager = player.addPlugin(SplitPlayerPlugins.TimeManager);
+
+            var playerSoundManager = player.addPlugin(SplitPlayerPlugins.SoundManager, {
                 area: '#splitPlayerController'
             });
 
-            var playerSoundSelector = player.addPlugin(SplitPlayerSoundSelector, {
-                area: '#splitPlayerController'
-            });
+            // add tracking
+            player.addPlugin(SplitPlayerPlugins.Analytics);
 
+            playerSoundManager.extend(SplitPlayerPlugins.SoundTrack, {
+                area: '#soundTracks'
+            });
             // add timeline
-            playerTimeManager.extend(SplitPlayerTimeLine, {
+            playerTimeManager.extend(SplitPlayerPlugins.TimeLine, {
                 area: '#playerTimeline'
             });
-
             // add timeline time picker
-            playerTimeManager.extend(SplitPlayerTimePicker);
+            playerTimeManager.extend(SplitPlayerPlugins.TimePicker);
 
             // add show time in hud
-            playerTimeManager.extend(SplitPlayerTimeDisplay, {
+            playerTimeManager.extend(SplitPlayerPlugins.TimeDisplay, {
                 area: '#playerTimeDisplay'
             });
 
             var setVolume = function (el) {
                 player.volumeTo($(el).val());
             };
-            */
         </script>
     </body>
 

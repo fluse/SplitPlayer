@@ -1,4 +1,5 @@
-/* globals $ */
+var extend = require('extend');
+var $ = require('jquery');
 
 'use strict';
 
@@ -8,7 +9,7 @@ var SplitPlayerSoundSelector = function (player, settings) {
     this.$volume = null;
 
     // extend settings
-    this.settings = $.extend({}, this.player.settings, {
+    this.settings = extend({}, this.player.settings, {
         sound: {
             min: 0,
             max: 100,
@@ -53,3 +54,5 @@ SplitPlayerSoundSelector.prototype = {
     }
 
 };
+
+module.exports = SplitPlayerSoundSelector;

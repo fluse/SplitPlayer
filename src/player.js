@@ -3,10 +3,14 @@
 'use strict';
 
 var $ = require('jquery');
-var extend = require('./helper/extend.js');
+var extend = require('extend');
 var Ticker = require('./helper/ticker');
+
 var SplitPlayerVideo = require('./video/');
+var SplitPlayerPlugins = require('./plugins/');
+
 var _ = require('underscore');
+
 const playerState = require('./constants.js');
 
 var SplitPlayer = function (settings) {
@@ -24,10 +28,10 @@ var SplitPlayer = function (settings) {
     this.plugins = [];
 
     // global player state
-    this.playerStateIs = playerState.unstarted;
+    this.playerStateIs = playerState.inactive;
 
-    // ticker for onUpdate interval
-    this.ticker = new Ticker(this.onUpdate.bind(this), 500);
+    // ticker for onUpdate interval on 0.1 seconds
+    this.ticker = new Ticker(this.onUpdate.bind(this), 100);
 
     // dependencie loading status
     this._dependenciesLoaded = false;
@@ -43,9 +47,6 @@ var SplitPlayer = function (settings) {
 
     this.mount();
 
-    /* add initial declared videos */
-    this.addVideos(this.settings.videos);
-
     return this;
 };
 
@@ -53,7 +54,13 @@ var SplitPlayer = function (settings) {
 SplitPlayer.prototype = {
 
     mount() {
-        this._render();
+        this.create();
+
+        for (let Plugin of this.plugins) {
+            if (Plugin.mount) {
+                Plugin.mount();
+            }
+        }
     },
 
     create() {
@@ -65,7 +72,7 @@ SplitPlayer.prototype = {
      * add Plugins
      */
     addPlugin(Plugin, settings) {
-        let _instance = new Plugin(this, settings || {});
+        let _instance = new Plugin(this, settings || {});
         this.plugins.push(_instance);
         return _instance;
     },
@@ -76,7 +83,6 @@ SplitPlayer.prototype = {
 
         // call all dependencie loaded hook
         for (let video of this.videos) {
-            console.log(video);
             video.mount();
         }
         this._dependenciesLoaded = true;
@@ -92,7 +98,7 @@ SplitPlayer.prototype = {
             // trigger add
             var addedVideo = this.addVideo(video);
 
-            // if added and all dependencies laoded, mount video
+            // if added and all dependencies loaded, mount video
             if (addedVideo !== false && this._dependenciesLoaded) {
                 addedVideo.mount();
             }
@@ -354,6 +360,12 @@ SplitPlayer.prototype = {
             video.timeTo(time);
         }
         return this;
+    },
+
+    mute() {
+        for (let video of this.videos) {
+            video.mute();
+        }
     },
 
     volumeTo(percentage) {

@@ -1,1 +1,1 @@
-uglifyjs --mangle --compress -- ./../public/dist/splitplayer.js > ./../public/dist/splitplayer.min.js
+uglifyjs --mangle --compress -- ./../dist/splitplayer.js > ./../dist/splitplayer.min.js

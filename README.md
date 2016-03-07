@@ -9,7 +9,7 @@ example on http://player.splitplay.tv
 ## Installation and Usage
 
 ```shell
-npm install splitplayer
+npm install splitplayer --save
 ```
 
 include one of these following splitplayer javascript into your page:
@@ -19,8 +19,12 @@ include one of these following splitplayer javascript into your page:
 <script src="/dist/splitplayer.js"></script>
 <!-- minified -->
 <script src="/dist/splitplayer.min.js"></script>
-<!-- standalone (included dependencies underscoreJS and jQuery) -->
-<script src="/dist/splitplayer.standalone.min.js"></script>
+```
+
+require per js
+
+```javascript
+var SplitPlayer = require('splitplayer');
 ```
 
 ## create player
@@ -77,7 +81,6 @@ var video = {
 var player = new SplitPlayer(options);
 
 var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
-
 ```
 
 `addPlugin()` return the created instance of given plugin
