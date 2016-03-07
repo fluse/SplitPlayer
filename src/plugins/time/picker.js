@@ -42,9 +42,9 @@ SplitPlayerTimePicker.prototype = {
     // show time on mousemove
     _showTime(e) {
 
-        let leftPos = (e.pageX - this.$timeline.offset().left);
+        var leftPos = (e.pageX - this.$timeline.offset().left);
 
-        let percentage = ((leftPos * 100) / this.$timeline.width());
+        var percentage = ((leftPos * 100) / this.$timeline.width());
 
         // set to 0 if negative value
         if (percentage < 0) {

@@ -44,7 +44,7 @@ SplitPlayerSoundManager.prototype = {
     },
 
     onUpdate() {
-        console.log('test');
+        
     },
 
     mount() {
@@ -67,7 +67,7 @@ SplitPlayerSoundManager.prototype = {
             return console.error('no dropArea for soundManager defined');
         }
 
-        let template = this.settings.template;
+        var template = this.settings.template;
 
         // replace params
         for (var placeholder in this.settings.sound) {

@@ -11033,7 +11033,7 @@ SplitPlayer.prototype = {
         // set loading state
         this.playerStateIs = playerState.loading;
 
-        // call all dependencie loaded hook
+        // call hook, all dependencies loaded
         var _iteratorNormalCompletion2 = true;
         var _didIteratorError2 = false;
         var _iteratorError2 = undefined;
@@ -11199,10 +11199,18 @@ SplitPlayer.prototype = {
     },
     destroyVideo: function destroyVideo(videoId) {
         // first remove video from player list
-        var video = this.removeVideo(videoId);
+        var video = this.getVideo(videoId);
+
+        if (!video) {
+            return false;
+        }
 
         // destory video
         video.destroy();
+
+        this.removeVideo(videoId);
+
+        return true;
     },
     empty: function empty() {
         this.duration = 0;
@@ -11233,31 +11241,17 @@ SplitPlayer.prototype = {
             }
         }
     },
-    removeVideo: function removeVideo(videoId) {
-
-        var video = this.getVideo(videoId);
-
-        // if there is a video
-        if (!video) {
-            return false;
-        }
-
-        // remove it from array
-        this.videos = _.without(this.videos, video);
-
-        // reinit playerDuration
+    removeVideos: function removeVideos(videoIdArray) {
         var _iteratorNormalCompletion7 = true;
         var _didIteratorError7 = false;
         var _iteratorError7 = undefined;
 
         try {
-            for (var _iterator7 = this.videos[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                var thisVideo = _step7.value;
+            for (var _iterator7 = videoIdArray[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                var videoId = _step7.value;
 
-                thisVideo.setPlayerDuration();
+                this.removeVideo(videoId);
             }
-
-            // and set readyCount one lower;
         } catch (err) {
             _didIteratorError7 = true;
             _iteratorError7 = err;
@@ -11272,10 +11266,51 @@ SplitPlayer.prototype = {
                 }
             }
         }
+    },
+    removeVideo: function removeVideo(videoId) {
+
+        var video = this.getVideo(videoId);
+
+        // if there is a video
+        if (!video) {
+            return false;
+        }
+
+        // remove it from array
+        this.videos = _.without(this.videos, video);
+
+        // reinit playerDuration
+        var _iteratorNormalCompletion8 = true;
+        var _didIteratorError8 = false;
+        var _iteratorError8 = undefined;
+
+        try {
+            for (var _iterator8 = this.videos[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                var current = _step8.value;
+
+                current.setPlayerDuration();
+            }
+
+            // and set readyCount one lower;
+        } catch (err) {
+            _didIteratorError8 = true;
+            _iteratorError8 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                    _iterator8.return();
+                }
+            } finally {
+                if (_didIteratorError8) {
+                    throw _iteratorError8;
+                }
+            }
+        }
 
         this.readyCount--;
 
-        return video;
+        video = null;
+        return true;
     },
 
     /*
@@ -11294,35 +11329,6 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.ready;
 
         // hook onReady for plugins
-        var _iteratorNormalCompletion8 = true;
-        var _didIteratorError8 = false;
-        var _iteratorError8 = undefined;
-
-        try {
-            for (var _iterator8 = this.plugins[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                var Plugin = _step8.value;
-
-                if (Plugin.onReady) {
-                    Plugin.onReady();
-                }
-            }
-        } catch (err) {
-            _didIteratorError8 = true;
-            _iteratorError8 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion8 && _iterator8.return) {
-                    _iterator8.return();
-                }
-            } finally {
-                if (_didIteratorError8) {
-                    throw _iteratorError8;
-                }
-            }
-        }
-    },
-    onUpdate: function onUpdate() {
-        // hook all plugins
         var _iteratorNormalCompletion9 = true;
         var _didIteratorError9 = false;
         var _iteratorError9 = undefined;
@@ -11331,8 +11337,8 @@ SplitPlayer.prototype = {
             for (var _iterator9 = this.plugins[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
                 var Plugin = _step9.value;
 
-                if (Plugin.onUpdate) {
-                    Plugin.onUpdate();
+                if (Plugin.onReady) {
+                    Plugin.onReady();
                 }
             }
         } catch (err) {
@@ -11346,6 +11352,35 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError9) {
                     throw _iteratorError9;
+                }
+            }
+        }
+    },
+    onUpdate: function onUpdate() {
+        // hook all plugins
+        var _iteratorNormalCompletion10 = true;
+        var _didIteratorError10 = false;
+        var _iteratorError10 = undefined;
+
+        try {
+            for (var _iterator10 = this.plugins[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                var Plugin = _step10.value;
+
+                if (Plugin.onUpdate) {
+                    Plugin.onUpdate();
+                }
+            }
+        } catch (err) {
+            _didIteratorError10 = true;
+            _iteratorError10 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                    _iterator10.return();
+                }
+            } finally {
+                if (_didIteratorError10) {
+                    throw _iteratorError10;
                 }
             }
         }
@@ -11378,13 +11413,13 @@ SplitPlayer.prototype = {
         // start ticker
         this.ticker.start();
 
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+        var _iteratorNormalCompletion11 = true;
+        var _didIteratorError11 = false;
+        var _iteratorError11 = undefined;
 
         try {
-            for (var _iterator10 = this.videos[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-                var video = _step10.value;
+            for (var _iterator11 = this.videos[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                var video = _step11.value;
 
                 if (video.getDuration() >= this.getPlayedTime()) {
                     video.play();
@@ -11392,33 +11427,6 @@ SplitPlayer.prototype = {
             }
 
             // hook onPlay for plugins
-        } catch (err) {
-            _didIteratorError10 = true;
-            _iteratorError10 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion10 && _iterator10.return) {
-                    _iterator10.return();
-                }
-            } finally {
-                if (_didIteratorError10) {
-                    throw _iteratorError10;
-                }
-            }
-        }
-
-        var _iteratorNormalCompletion11 = true;
-        var _didIteratorError11 = false;
-        var _iteratorError11 = undefined;
-
-        try {
-            for (var _iterator11 = this.plugins[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-                var Plugin = _step11.value;
-
-                if (Plugin.onPlay) {
-                    Plugin.onPlay();
-                }
-            }
         } catch (err) {
             _didIteratorError11 = true;
             _iteratorError11 = err;
@@ -11430,6 +11438,33 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError11) {
                     throw _iteratorError11;
+                }
+            }
+        }
+
+        var _iteratorNormalCompletion12 = true;
+        var _didIteratorError12 = false;
+        var _iteratorError12 = undefined;
+
+        try {
+            for (var _iterator12 = this.plugins[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                var Plugin = _step12.value;
+
+                if (Plugin.onPlay) {
+                    Plugin.onPlay();
+                }
+            }
+        } catch (err) {
+            _didIteratorError12 = true;
+            _iteratorError12 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion12 && _iterator12.return) {
+                    _iterator12.return();
+                }
+            } finally {
+                if (_didIteratorError12) {
+                    throw _iteratorError12;
                 }
             }
         }
@@ -11449,45 +11484,18 @@ SplitPlayer.prototype = {
         }
 
         // pause all videos
-        var _iteratorNormalCompletion12 = true;
-        var _didIteratorError12 = false;
-        var _iteratorError12 = undefined;
-
-        try {
-            for (var _iterator12 = this.videos[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-                var video = _step12.value;
-
-                video.pause();
-            }
-
-            // hook all plugins
-        } catch (err) {
-            _didIteratorError12 = true;
-            _iteratorError12 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion12 && _iterator12.return) {
-                    _iterator12.return();
-                }
-            } finally {
-                if (_didIteratorError12) {
-                    throw _iteratorError12;
-                }
-            }
-        }
-
         var _iteratorNormalCompletion13 = true;
         var _didIteratorError13 = false;
         var _iteratorError13 = undefined;
 
         try {
-            for (var _iterator13 = this.plugins[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-                var Plugin = _step13.value;
+            for (var _iterator13 = this.videos[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                var video = _step13.value;
 
-                if (Plugin.onPause) {
-                    Plugin.onPause();
-                }
+                video.pause();
             }
+
+            // hook all plugins
         } catch (err) {
             _didIteratorError13 = true;
             _iteratorError13 = err;
@@ -11499,6 +11507,33 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError13) {
                     throw _iteratorError13;
+                }
+            }
+        }
+
+        var _iteratorNormalCompletion14 = true;
+        var _didIteratorError14 = false;
+        var _iteratorError14 = undefined;
+
+        try {
+            for (var _iterator14 = this.plugins[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+                var Plugin = _step14.value;
+
+                if (Plugin.onPause) {
+                    Plugin.onPause();
+                }
+            }
+        } catch (err) {
+            _didIteratorError14 = true;
+            _iteratorError14 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion14 && _iterator14.return) {
+                    _iterator14.return();
+                }
+            } finally {
+                if (_didIteratorError14) {
+                    throw _iteratorError14;
                 }
             }
         }
@@ -11528,13 +11563,13 @@ SplitPlayer.prototype = {
         }
 
         // pause all videos
-        var _iteratorNormalCompletion14 = true;
-        var _didIteratorError14 = false;
-        var _iteratorError14 = undefined;
+        var _iteratorNormalCompletion15 = true;
+        var _didIteratorError15 = false;
+        var _iteratorError15 = undefined;
 
         try {
-            for (var _iterator14 = this.videos[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-                var video = _step14.value;
+            for (var _iterator15 = this.videos[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+                var video = _step15.value;
 
                 if (video.getPlayerState() !== 0) {
                     video.stop();
@@ -11542,33 +11577,6 @@ SplitPlayer.prototype = {
             }
 
             // hook all plugins
-        } catch (err) {
-            _didIteratorError14 = true;
-            _iteratorError14 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion14 && _iterator14.return) {
-                    _iterator14.return();
-                }
-            } finally {
-                if (_didIteratorError14) {
-                    throw _iteratorError14;
-                }
-            }
-        }
-
-        var _iteratorNormalCompletion15 = true;
-        var _didIteratorError15 = false;
-        var _iteratorError15 = undefined;
-
-        try {
-            for (var _iterator15 = this.plugins[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-                var Plugin = _step15.value;
-
-                if (Plugin.onStop) {
-                    Plugin.onStop();
-                }
-            }
         } catch (err) {
             _didIteratorError15 = true;
             _iteratorError15 = err;
@@ -11584,20 +11592,17 @@ SplitPlayer.prototype = {
             }
         }
 
-        this.playerStateIs = playerState.unstarted;
-
-        return this;
-    },
-    timeTo: function timeTo(time) {
         var _iteratorNormalCompletion16 = true;
         var _didIteratorError16 = false;
         var _iteratorError16 = undefined;
 
         try {
-            for (var _iterator16 = this.videos[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-                var video = _step16.value;
+            for (var _iterator16 = this.plugins[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+                var Plugin = _step16.value;
 
-                video.timeTo(time);
+                if (Plugin.onStop) {
+                    Plugin.onStop();
+                }
             }
         } catch (err) {
             _didIteratorError16 = true;
@@ -11614,9 +11619,11 @@ SplitPlayer.prototype = {
             }
         }
 
+        this.playerStateIs = playerState.unstarted;
+
         return this;
     },
-    mute: function mute() {
+    timeTo: function timeTo(time) {
         var _iteratorNormalCompletion17 = true;
         var _didIteratorError17 = false;
         var _iteratorError17 = undefined;
@@ -11625,7 +11632,7 @@ SplitPlayer.prototype = {
             for (var _iterator17 = this.videos[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
                 var video = _step17.value;
 
-                video.mute();
+                video.timeTo(time);
             }
         } catch (err) {
             _didIteratorError17 = true;
@@ -11641,17 +11648,10 @@ SplitPlayer.prototype = {
                 }
             }
         }
+
+        return this;
     },
-    volumeTo: function volumeTo(percentage) {
-
-        if (percentage > 100) {
-            percentage = 100;
-        } else if (percentage < 0) {
-            percentage = 0;
-        }
-
-        this.settings.volume = percentage;
-
+    mute: function mute() {
         var _iteratorNormalCompletion18 = true;
         var _didIteratorError18 = false;
         var _iteratorError18 = undefined;
@@ -11660,7 +11660,7 @@ SplitPlayer.prototype = {
             for (var _iterator18 = this.videos[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
                 var video = _step18.value;
 
-                video.volumeTo(percentage);
+                video.mute();
             }
         } catch (err) {
             _didIteratorError18 = true;
@@ -11676,11 +11676,17 @@ SplitPlayer.prototype = {
                 }
             }
         }
-
-        return this;
     },
-    _videosInState: function _videosInState(state) {
-        var inState = true;
+    volumeTo: function volumeTo(percentage) {
+
+        if (percentage > 100) {
+            percentage = 100;
+        } else if (percentage < 0) {
+            percentage = 0;
+        }
+
+        this.settings.volume = percentage;
+
         var _iteratorNormalCompletion19 = true;
         var _didIteratorError19 = false;
         var _iteratorError19 = undefined;
@@ -11689,9 +11695,7 @@ SplitPlayer.prototype = {
             for (var _iterator19 = this.videos[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
                 var video = _step19.value;
 
-                if (video.getPlayerState() === state && inState) {
-                    inState = false;
-                }
+                video.volumeTo(percentage);
             }
         } catch (err) {
             _didIteratorError19 = true;
@@ -11704,6 +11708,37 @@ SplitPlayer.prototype = {
             } finally {
                 if (_didIteratorError19) {
                     throw _iteratorError19;
+                }
+            }
+        }
+
+        return this;
+    },
+    _videosInState: function _videosInState(state) {
+        var inState = true;
+        var _iteratorNormalCompletion20 = true;
+        var _didIteratorError20 = false;
+        var _iteratorError20 = undefined;
+
+        try {
+            for (var _iterator20 = this.videos[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+                var video = _step20.value;
+
+                if (video.getPlayerState() === state && inState) {
+                    inState = false;
+                }
+            }
+        } catch (err) {
+            _didIteratorError20 = true;
+            _iteratorError20 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion20 && _iterator20.return) {
+                    _iterator20.return();
+                }
+            } finally {
+                if (_didIteratorError20) {
+                    throw _iteratorError20;
                 }
             }
         }
@@ -11835,9 +11870,7 @@ SplitPlayerSoundManager.prototype = {
         // push to player plugins for other hooks
         return this.player.plugins.push(Module);
     },
-    onUpdate: function onUpdate() {
-        console.log('test');
-    },
+    onUpdate: function onUpdate() {},
     mount: function mount() {
         this._render();
         this._setEvents();
@@ -12115,7 +12148,6 @@ var extend = require('extend');
 'use strict';
 
 var SplitPlayerTimeManager = function SplitPlayerTimeManager(player, settings) {
-    console.log(settings);
     this.player = player;
 
     this.isActive = false;
@@ -12618,7 +12650,8 @@ YoutubeVideo.prototype = {
         this.pause();
     },
     getDuration: function getDuration() {
-        return this.videoPlayer.getDuration() - this.settings.startSeconds;
+        var duration = this.videoPlayer.getDuration() || 0;
+        return duration - this.settings.startSeconds;
     },
     setPlayerDuration: function setPlayerDuration() {
         var _duration = this.getDuration();
@@ -12641,6 +12674,8 @@ YoutubeVideo.prototype = {
     destroy: function destroy() {
         // remove youtube video iframe
         $('#' + this.settings.videoId).remove();
+
+        return true;
     }
 };
 

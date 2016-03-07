@@ -158,7 +158,8 @@ YoutubeVideo.prototype = {
     },
 
     getDuration() {
-        return this.videoPlayer.getDuration() - this.settings.startSeconds;
+        var duration = (this.videoPlayer.getDuration() || 0);
+        return (duration - this.settings.startSeconds);
     },
 
     setPlayerDuration() {
@@ -186,6 +187,8 @@ YoutubeVideo.prototype = {
     destroy() {
         // remove youtube video iframe
         $('#' + this.settings.videoId).remove();
+
+        return true;
     }
 
 };

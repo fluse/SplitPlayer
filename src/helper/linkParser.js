@@ -7,3 +7,5 @@ var youtubeLinkParse = function (url) {
           return url;
         }
 };
+
+module.exports = youtubeLinkParse;

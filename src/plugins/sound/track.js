@@ -43,9 +43,9 @@ SplitPlayerSoundTrack.prototype = {
         player.mute();
 
         // than activate given list
-        for (let i = 0; i < activeVideos.length; i++) {
+        for (var i = 0; i < activeVideos.length; i++) {
 
-            let video = player.getVideo(activeVideos[i]);
+            var video = player.getVideo(activeVideos[i]);
 
             if (video !== false) {
                 video.unMute();
@@ -64,11 +64,11 @@ SplitPlayerSoundTrack.prototype = {
             return console.error('no dropArea for SoundTrack defined');
         }
 
-        let template = '';
+        var template = '';
 
         var videos = this.soundManager.player.videos;
 
-        for (let video of videos) {
+        for (var video of videos) {
             // replace params
             template += this.settings.template
                             .replace('%videoId%', video.settings.videoId)

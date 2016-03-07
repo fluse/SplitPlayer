@@ -31,13 +31,6 @@ describe('SplitPlayer', function() {
         done();
     });
 
-    it('should have playerState unstarted on init', function(done) {
-
-        player.playerStateIs.should.equal(playerState.unstarted);
-
-        done();
-    });
-
     it('should change state on play to playing', function(done) {
 
         player.play();
@@ -50,6 +43,19 @@ describe('SplitPlayer', function() {
     it('should change state on pause to pause', function(done) {
 
         player.pause();
+
+        player.playerStateIs.should.equal(playerState.pause);
+
+        done();
+    });
+
+    it('should change state on toggle', function(done) {
+
+        player.toggle();
+
+        player.playerStateIs.should.equal(playerState.playing);
+
+        player.toggle();
 
         player.playerStateIs.should.equal(playerState.pause);
 
@@ -88,9 +94,48 @@ describe('SplitPlayer', function() {
             isMuted: true
         }).should.equal(false);
 
+        expect(player.videos).to.have.length(1);
+
         done();
     });
 
+    it('should destroy video', function(done) {
+        player.removeVideo('QfrUodC2pbg').should.equal(true);
+
+        done();
+    });
+
+    it('should not destroyVideo if not available', function(done) {
+
+        player.destroyVideo('QfrUodC2pbg').should.equal(false);
+        expect(player.videos).to.have.length(0);
+        done();
+    });
+
+    it('should add a list of videos', function(done) {
+
+        var videos = [{
+            videoId: 'QfrUodC2pbg',
+            hoster: 'youtube',
+            startSeconds: 0,
+            isMuted: true
+        }, {
+            videoId: 'J4Ltw1ZA9ho',
+            startSeconds: 0,
+            hoster: 'youtube',
+            isMuted: false
+        },{
+            videoId: 'reWiqJ2iux8',
+            startSeconds: 30,
+            hoster: 'youtube',
+            isMuted: true
+        }];
+
+        player.addVideos(videos);
+        expect(player.videos).to.have.length(videos.length);
+
+        done();
+    });
 
 
 });

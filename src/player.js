@@ -81,7 +81,7 @@ SplitPlayer.prototype = {
         // set loading state
         this.playerStateIs = playerState.loading;
 
-        // call all dependencie loaded hook
+        // call hook, all dependencies loaded
         for (let video of this.videos) {
             video.mount();
         }
@@ -171,10 +171,18 @@ SplitPlayer.prototype = {
 
     destroyVideo(videoId) {
         // first remove video from player list
-        var video = this.removeVideo(videoId);
+        var video = this.getVideo(videoId);
+
+        if (!video) {
+            return false;
+        }
 
         // destory video
         video.destroy();
+
+        this.removeVideo(videoId)
+
+        return true;
     },
 
     empty() {
@@ -183,6 +191,12 @@ SplitPlayer.prototype = {
 
         for (let video of this.videos) {
             this.destroyVideo(video.settings.videoId);
+        }
+    },
+
+    removeVideos(videoIdArray) {
+        for (var videoId of videoIdArray) {
+            this.removeVideo(videoId);
         }
     },
 
@@ -202,14 +216,15 @@ SplitPlayer.prototype = {
         );
 
         // reinit playerDuration
-        for (let thisVideo of this.videos) {
-            thisVideo.setPlayerDuration();
+        for (let current of this.videos) {
+            current.setPlayerDuration();
         }
 
         // and set readyCount one lower;
         this.readyCount--;
 
-        return video;
+        video = null;
+        return true;
     },
 
     /*

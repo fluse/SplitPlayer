@@ -1,3 +1,5 @@
+'use strict';
+
 var SplitPlayerPlugins = {
     TimeManager: require('./time/manager.js'),
     TimeLine: require('./time/line.js'),

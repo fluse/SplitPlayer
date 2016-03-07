@@ -63,7 +63,7 @@ SplitPlayerTimeLine.prototype = {
     },
 
     _render() {
-        let dom = $(this.settings.area).append(this.settings.template);
+        var dom = $(this.settings.area).append(this.settings.template);
 
         this.timeManager.$timeline = dom.find('#timeline');
         this.$bar = this.timeManager.$timeline .find('i');

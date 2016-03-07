@@ -3,7 +3,6 @@ var extend = require('extend');
 'use strict';
 
 var SplitPlayerTimeManager = function (player, settings) {
-    console.log(settings);
     this.player = player;
 
     this.isActive = false;
@@ -61,7 +60,7 @@ SplitPlayerTimeManager.prototype = {
     setTo(playedTime) {
         this.playedTime = playedTime;
         // plugin
-        for (let Plugin of this.plugins) {
+        for (var Plugin of this.plugins) {
             if (Plugin.onSetTo) {
                 Plugin.onSetTo(this.getData());
             }
@@ -93,9 +92,9 @@ SplitPlayerTimeManager.prototype = {
 
     _formatTime(timeInplayedTime) {
         // convert to minutes
-        let minutes = Math.floor(timeInplayedTime / 60);
+        var minutes = Math.floor(timeInplayedTime / 60);
         // convert seconds
-        let seconds = Math.round(timeInplayedTime - minutes * 60);
+        var seconds = Math.round(timeInplayedTime - minutes * 60);
 
         if (seconds < 10) {
             seconds = '0' + seconds;
