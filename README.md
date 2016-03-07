@@ -6,12 +6,14 @@ you can see an productive integration on http://splitplay.tv
 
 example on http://player.splitplay.tv
 
-## Installation and Usage
+# Installation and Usage
 
+## Install
 ```shell
 npm install splitplayer --save
 ```
 
+## Include
 include one of these following splitplayer javascript into your page:
 
 ```html
@@ -21,31 +23,71 @@ include one of these following splitplayer javascript into your page:
 <script src="/dist/splitplayer.min.js"></script>
 ```
 
-require per js
+require as node module
 
 ```javascript
 var SplitPlayer = require('splitplayer');
 ```
 
-## create player
+# Player
+
+## Create
 
 ```javascript
 var player = new SplitPlayer(options);
 ```
 
-### player options
+### Options
 
 ```javascript
 var options = {
-    videos: [],
-    area: null,
-    maxVideos: 4,
-    volume: 100,
-    template: '<div id="SplitPlayer"></div>'
+    videos: Array,
+    area: String,
+    maxVideos: Number,
+    volume: Number,
+    template: String
 };
 ```
 
-### add videos on player creation
+| option        | type           | description  |
+| ------------- |:-------------:| :---------|
+| videos      | Array | list of videos with there settings |
+| area      | String      |   DOM droparea for player |
+| maxVideos | Number      |   set maximal video amount |
+| volume | Number      |    set intial volume |
+| template | String      |    wrapper for all videos |
+
+## Videos
+
+### Options
+```javascript
+
+var video = {
+    hoster: String,
+    videoId: String,
+    startSeconds: Number,
+    isMuted: Boolean
+}
+```
+
+| option        | type           | description  |
+| ------------- |:-------------:| :-----|
+| hoster      | String | set which service this video will use |
+| videoId      | String      |   id from youtube or other services |
+| startSeconds | Number      |    set seconds, where video will begin, this supports float values like 1.2 |
+| isMuted | Boolean      |    false or true do unmute or mute a video initial |
+
+### Examples
+```javascript
+var video = {
+    hoster: 'youtube',
+    videoId: 'J4Ltw1ZA9ho',
+    startSeconds: 1.2,
+    isMuted: false
+}
+```
+
+#### add list of videos
 
 ```javascript
 
@@ -54,7 +96,7 @@ var videoList = [{options}, {options}, {options}];
 var player = new SplitPlayer(options, videoList);
 ```
 
-### add single video after player creation
+#### add one video
 
 ```javascript
 // create new player
@@ -64,18 +106,19 @@ var player = new SplitPlayer(options);
 player.addVideo({object});
 ```
 
-### video options
-```javascript
+### Plugins
 
-var video = {
-    hoster: 'youtube',
-    videoId: String,
-    startSeconds: Number, // 1.2 float support
-    isMuted: Boolean
-}
-```
+| Name        | description  | dependencies |
+| ------------|:-----| :-----|
+| TimeLine      | show played time on a line | TimeManager |
+| TimePicker      | this plugin will set your selected time as players current played time | TimeManager |
+| TimeDisplay      | show played time on a line | TimeManager |
+| Analytics      | if you have google analytcs running, you can include this plugin to track events | Analytics, TimeManager |
+| SoundTrack      | this plugin gives the possability to select a soundtrack from added videos | SoundManager |
 
-#### add plugin
+#### Add Plugin
+
+you can add a plugin directy after you've created the player like this
 
 ```javascript
 var player = new SplitPlayer(options);
@@ -83,9 +126,9 @@ var player = new SplitPlayer(options);
 var playerTimeManager = player.addPlugin(SplitPlayerTimeManager);
 ```
 
-`addPlugin()` return the created instance of given plugin
+`addPlugin()` return created instance of given plugin
 
-#### add plugin and extend plugin with modules
+#### Extend Plugin
 
 maybe you want to add a new behavior to your playerTime, like an on hover show time
 
@@ -99,13 +142,6 @@ playerTimeManager.extend(SplitPlayerTimePicker);
 ```
 
 `extend()` return the created instance of given module
-
-#### available time Plugins
-
-- TimeManager
- - TimeLine
- - TimePicker
- - TimeDisplay
 
 #### playerStates
 

@@ -7,7 +7,7 @@ var SplitPlayerSoundTrack = function (soundManager, settings) {
     this.soundManager = soundManager;
 
     this.$trackList = null;
-    console.log(this.soundManager);
+
     // extend settings
     this.settings = extend({}, this.soundManager.player.settings, {
         area: null,

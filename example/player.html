@@ -30,9 +30,9 @@
            <span onclick="player.toggle()">toggle</span>
        </div>
 
-       <div id="soundTracks" class="grd-1 txt-cnr">
-           <h3>Set Soundtracks</h3>
-       </div>
+        <div id="soundTracks" class="grd-1 txt-cnr">
+            <h3>Set Soundtracks</h3>
+        </div>
 
        <div class="settings grd-1 txt-cnr">
            <h3>Settings</h3>
@@ -62,7 +62,7 @@
                 isMuted: false
             },{
                 videoId: 'reWiqJ2iux8',
-                startSeconds: 0,
+                startSeconds: 30,
                 hoster: 'youtube',
                 isMuted: true
             }];
@@ -84,6 +84,7 @@
             playerSoundManager.extend(SplitPlayerPlugins.SoundTrack, {
                 area: '#soundTracks'
             });
+
             // add timeline
             playerTimeManager.extend(SplitPlayerPlugins.TimeLine, {
                 area: '#playerTimeline'
@@ -95,10 +96,6 @@
             playerTimeManager.extend(SplitPlayerPlugins.TimeDisplay, {
                 area: '#playerTimeDisplay'
             });
-
-            var setVolume = function (el) {
-                player.volumeTo($(el).val());
-            };
         </script>
     </body>
 

@@ -1,5 +1,3 @@
-/* globals YT */
-
 'use strict';
 
 var extend = require('extend');

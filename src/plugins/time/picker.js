@@ -8,7 +8,6 @@ var $ = require('jquery');
 var SplitPlayerTimePicker = function (timeManager, settings) {
     this.timeManager = timeManager;
 
-    this.$timeline = this.timeManager.$timeline;
     this.$previewLine = null;
 
     this.previewedTime = 0;
@@ -27,6 +26,8 @@ var SplitPlayerTimePicker = function (timeManager, settings) {
 SplitPlayerTimePicker.prototype = {
 
     mount() {
+        this.$timeline = this.timeManager.$timeline;
+
         this._render();
         this._setEvents();
     },
@@ -59,6 +60,7 @@ SplitPlayerTimePicker.prototype = {
 
     // set time on click
     _setTime() {
+        this.timeManager.setTo(this.previewedTime);
         this.timeManager.player.timeTo(this.previewedTime);
     },
 

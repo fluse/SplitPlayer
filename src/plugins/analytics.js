@@ -5,6 +5,7 @@ var extend = require('extend');
 var SplitPlayerAnalytics = function (player, settings) {
     this.player = player;
 
+    this.$volume = null;
     // extend settings
     this.settings = extend({}, this.player.settings, {
     }, settings || {});
@@ -37,5 +38,4 @@ SplitPlayerAnalytics.prototype = {
     }
 
 };
-
 module.exports = SplitPlayerAnalytics;

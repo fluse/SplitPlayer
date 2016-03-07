@@ -38,6 +38,7 @@ SplitPlayerTimeManager.prototype = {
      */
     onReady() {
         this.isActive = true;
+        this.setTo(0);
     },
 
     /*
@@ -51,7 +52,7 @@ SplitPlayerTimeManager.prototype = {
      * player onStop hook
      */
     onStop() {
-        this.playedTime = 0;
+        this.setTo(0);
     },
 
     /*
