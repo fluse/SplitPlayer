@@ -5579,10 +5579,53 @@ module.exports = SplitPlayerTimeSync;
 'use strict';
 
 module.exports = {
-    youtube: require('./youtube.js')
+    youtube: require('./youtube.js'),
+    native: require('./native.js')
 };
 
-},{"./youtube.js":37}],37:[function(require,module,exports){
+},{"./native.js":37,"./youtube.js":38}],37:[function(require,module,exports){
+'use strict';
+
+var extend = require('extend');
+var $ = require('domtastic');
+
+var playerState = require('./../constants');
+
+var NativeVideo = function NativeVideo(player, settings) {
+
+    this.player = player;
+    this.videoPlayer = null;
+
+    this.settings = extend({
+        videoId: new Date().getTime(),
+        startSeconds: 0,
+        videoUrl: null,
+        isMuted: false
+    }, settings);
+
+    this.isMuted = this.settings.isMuted;
+
+    return this;
+};
+
+NativeVideo.prototype = {
+
+    loadingDependencies: true,
+
+    load: function load(callback) {
+        callback();
+    },
+    mount: function mount() {
+        this._render();
+        this.create();
+    },
+    create: function create() {},
+    _render: function _render() {
+        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><video id="Video1"><source src="demo.mp4" type="video/mp4" /></video></div>');
+    }
+};
+
+},{"./../constants":23,"domtastic":14,"extend":21}],38:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
