@@ -3,14 +3,19 @@
   "author": "Holger Schauf",
   "website": "http://player.splitplay.tv",
   "private": false,
-  "version": "1.2.0",
+  "version": "1.2.2",
   "engines": {
     "node": "4.1.0"
   },
-  "description": "SplitPlayer - highly flexible extendable video player",
+  "description": "SplitPlayer - highly flexible extendable multi video player",
   "keywords": [
     "youtube",
     "player",
+    "html 5 video",
+    "vimeo",
+    "crosstab",
+    "picture in picture",
+    "multi video",
     "video timepick",
     "video sound controle"
   ],
@@ -20,6 +25,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "crosstab": "^0.2.12",
     "domtastic": "^0.12.0",
     "express": "^4.13.3",
     "extend": "^3.0.0",

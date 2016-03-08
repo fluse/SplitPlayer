@@ -14,6 +14,7 @@ var YoutubeVideo = function (player, settings) {
     this.settings = extend({
         videoId: null,
         startSeconds: 0,
+        isHidden: false,
         isMuted: false
     }, settings);
 
@@ -96,6 +97,25 @@ YoutubeVideo.prototype = {
         }
 
         console.info('state %s not fetched', event.data);
+    },
+
+    hide() {
+        if (this.settings.isHidden) {
+            return false;
+        }
+
+        $('#' + this.settings.videoId).hide();
+        this.settings.isHidden = true;
+    },
+
+    show() {
+        if (!this.settings.isHidden) {
+            return false;
+        }
+
+        $('#' + this.settings.videoId).show();
+
+        this.settings.isHidden = false;
     },
 
     getPlayerState() {

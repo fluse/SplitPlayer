@@ -48,7 +48,6 @@ var SplitPlayer = function (settings) {
     return this;
 };
 
-
 SplitPlayer.prototype = {
 
     mount() {

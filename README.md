@@ -1,9 +1,23 @@
 # SplitPlayer
 
+[![](http://player.splitplay.tv/dist/logo.png)](http://player.splitplay.tv)
+
 [![npm package](https://nodei.co/npm/splitplayer.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/splitplayer/)
 
-SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync.
-Gives you analytics access to all player hooks.
+SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync. Let Videos Start at different seconds, to get them synchronous.
+
+
+## Features
+- Multi Videos
+- Analytics Support
+- Sound Selection
+- Timepicker on timeline select set new time to each video
+- Hide or show specific videos
+- Synchronize Interface (planned)
+- Playlists (planned)
+- Picture in Picture Mode (planned)
+- Fullscreen Mode (planned)
+- controle videos cross tabs (planned)
 
 Productive integration on http://splitplay.tv
 

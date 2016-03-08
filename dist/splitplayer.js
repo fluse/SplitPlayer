@@ -1,4 +1,4 @@
-/* splitplayer 1.2.0 - http://player.splitplay.tv - copyright Holger Schauf */
+/* splitplayer 1.2.2 - http://player.splitplay.tv - copyright Holger Schauf */
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
  * @module Array
@@ -5612,18 +5612,72 @@ NativeVideo.prototype = {
 
     loadingDependencies: true,
 
-    load: function load(callback) {
-        callback();
-    },
+    load: function load(callback) {},
     mount: function mount() {
         this._render();
         this.create();
     },
-    create: function create() {},
+    create: function create() {
+        this.videoPlayer = $('#vid' + this.settings.videoId)[0];
+        console.log(this.videoPlayer);
+    },
+    getDuration: function getDuration() {
+        var duration = this.videoPlayer.duration || 0;
+        return duration - this.settings.startSeconds;
+    },
+    setPlayerDuration: function setPlayerDuration() {
+        var _duration = this.getDuration();
+
+        if (this.player.duration < _duration) {
+            this.player.duration = _duration;
+            this.player.getPlayedTime = this.getPlayedTime.bind(this);
+        }
+    },
+    getPlayedTime: function getPlayedTime() {
+        return this.videoPlayer.currentTime - this.settings.startSeconds;
+    },
+    getPlayerState: function getPlayerState() {
+        return null;
+    },
+    play: function play() {
+        this.videoPlayer.play();
+    },
+    pause: function pause() {
+        this.videoPlayer.pause();
+    },
+    mute: function mute() {
+        this.isMuted = true;
+        this.settings.isMuted = this.isMuted;
+        this.videoPlayer.muted = this.isMuted;
+        return true;
+    },
+    unMute: function unMute() {
+        this.isMuted = false;
+        this.settings.isMuted = this.isMuted;
+        this.videoPlayer.muted = this.isMuted;
+        this.volumeTo(this.player.settings.volume);
+
+        return true;
+    },
+    volumeTo: function volumeTo(percentage) {
+        if (this.isMuted) {
+            return false;
+        }
+
+        // convert to native value
+        var nativeValue = percentage / 100;
+        this.videoPlayer.volume = nativeValue;
+        return true;
+    },
+    stop: function stop() {
+        this.videoPlayer.stop();
+    },
     _render: function _render() {
-        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><video id="Video1"><source src="demo.mp4" type="video/mp4" /></video></div>');
+        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '" class="video"><video id="vid' + this.settings.videoId + '"><source src="' + this.settings.videoUrl + '" type="video/mp4" /></video></div>');
     }
 };
+
+module.exports = NativeVideo;
 
 },{"./../constants":23,"domtastic":14,"extend":21}],38:[function(require,module,exports){
 'use strict';
@@ -5642,6 +5696,7 @@ var YoutubeVideo = function YoutubeVideo(player, settings) {
     this.settings = extend({
         videoId: null,
         startSeconds: 0,
+        isHidden: false,
         isMuted: false
     }, settings);
 
@@ -5719,6 +5774,23 @@ YoutubeVideo.prototype = {
         }
 
         console.info('state %s not fetched', event.data);
+    },
+    hide: function hide() {
+        if (this.settings.isHidden) {
+            return false;
+        }
+
+        $('#' + this.settings.videoId).hide();
+        this.settings.isHidden = true;
+    },
+    show: function show() {
+        if (!this.settings.isHidden) {
+            return false;
+        }
+
+        $('#' + this.settings.videoId).show();
+
+        this.settings.isHidden = false;
     },
     getPlayerState: function getPlayerState() {
         return this.videoPlayer.getPlayerState();
