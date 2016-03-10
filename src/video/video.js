@@ -1,86 +1,88 @@
-module.exports = {
+module.exports = class Video {
 
-    loadingDependencies: false,
+    constructor() {
+        this.loadingDependencies =  false;
+    }
 
     load(callback) {
 
-    },
+    }
 
-    mount() {},
+    mount() {}
 
-    create() {},
+    create() {}
 
-    onReady() {},
+    onReady() {}
 
-    onError(err) {},
+    onError(err) {}
 
-    onStateChange(event) {},
+    onStateChange(event) {}
 
     hide() {
 
-    },
+    }
 
     show() {
 
-    },
+    }
 
     getPlayerState() {
 
-    },
+    }
 
     remove() {
 
-    },
+    }
 
     timeTo(time) {
 
-    },
+    }
 
     volumeTo(percentage) {
 
-    },
+    }
 
     mute() {
 
-    },
+    }
 
     unMute() {
 
-    },
+    }
 
     play() {
 
-    },
+    }
 
     pause() {
 
-    },
+    }
 
     stop() {
 
-    },
+    }
 
     getDuration() {
 
-    },
+    }
 
     setPlayerDuration() {
 
-    },
+    }
 
     getPlayedTime() {
 
-    },
+    }
 
     _render() {
 
-    },
+    }
 
     noVideo() {
 
-    },
+    }
 
     destroy() {
     }
 
-};
+}

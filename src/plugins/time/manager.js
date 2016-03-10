@@ -1,23 +1,21 @@
-var extend = require('extend');
-
 'use strict';
 
-var SplitPlayerTimeManager = function (player, settings) {
-    this.player = player;
+var extend = require('extend');
 
-    this.isActive = false;
-    this.playedTime = 0;
+module.exports = class SplitPlayerTimeManager {
 
-    this.plugins = [];
+    constructor (player, settings) {
+        this.player = player;
 
-    // extend player settings
-    this.settings = extend({}, this.player.settings, {
-    }, settings || {});
+        this.isActive = false;
+        this.playedTime = 0;
 
-    return this;
-};
+        this.plugins = [];
 
-SplitPlayerTimeManager.prototype = {
+        // extend player settings
+        this.settings = extend({}, this.player.settings, {
+        }, settings || {});
+    }
 
     /*
      * extend Module
@@ -30,7 +28,7 @@ SplitPlayerTimeManager.prototype = {
 
         // push to player plugins for other hooks
         return this.player.plugins.push(Module);
-    },
+    }
 
     /*
      * player onReady hook
@@ -38,21 +36,21 @@ SplitPlayerTimeManager.prototype = {
     onReady() {
         this.isActive = true;
         this.setTimeTo(0);
-    },
+    }
 
     /*
      * player onUpdate hook
      */
     onUpdate() {
         this.setTimeTo(this.player.getPlayedTime());
-    },
+    }
 
     /*
      * player onStop hook
      */
     onStop() {
         this.setTimeTo(0);
-    },
+    }
 
     /*
      * Set Time to
@@ -65,7 +63,7 @@ SplitPlayerTimeManager.prototype = {
                 Plugin.onsetTimeTo(this.getData());
             }
         }
-    },
+    }
 
     /*
      * get all time data from player
@@ -88,7 +86,7 @@ SplitPlayerTimeManager.prototype = {
             duration: duration,
             durationFormatted: durationFormatted
         };
-    },
+    }
 
     _formatTime(timeInplayedTime) {
         // convert to minutes
@@ -106,11 +104,9 @@ SplitPlayerTimeManager.prototype = {
         }
 
         return minutes + ':' + seconds;
-    },
+    }
 
     destroy() {
         this.onStop();
     }
 };
-
-module.exports = SplitPlayerTimeManager;

@@ -1,19 +1,17 @@
-var Ticker = function (callback, interval) {
-    this.isActive = false;
-    this.cycler = null;
+module.exports = class Ticker {
 
-    this.callback = callback || null;
-    this.interval = interval || 1000;
+    constructor(callback, interval) {
+        this.isActive = false;
+        this.cycler = null;
 
-    return this;
-};
-
-Ticker.prototype = {
+        this.callback = callback || null;
+        this.interval = interval || 1000;
+    }
 
     start () {
         this.isActive = true;
         this.do();
-    },
+    }
 
     do () {
 
@@ -23,10 +21,10 @@ Ticker.prototype = {
 
         if (this.callback !== null) {
             this.callback();
-            
+
             this.cycler = setTimeout(this.do.bind(this), this.interval);
         }
-    },
+    }
 
     stop () {
         this.isActive = false;
@@ -34,5 +32,3 @@ Ticker.prototype = {
         clearTimeout(this.cycler);
     }
 };
-
-module.exports = Ticker;

@@ -6,49 +6,48 @@ var extend = require('extend');
 var _ = require('underscore');
 
 var Ticker = require('./helper/ticker');
-var SplitPlayerVideo = require('./video/');
+var SplitPlayerVideo = window.SplitPlayerVideo = require('./video/');
 var SplitPlayerPlugins = require('./plugins/');
 
 const playerState = require('./constants.js');
 
-var SplitPlayer = function (settings) {
+class SplitPlayer {
 
-    this.duration = 0;
+    constructor(settings) {
+        this.duration = 0;
 
-    this.readyCount = 0;
+        this.readyCount = 0;
 
-    this.$dom = null;
+        this.$dom = null;
 
-    // video instances container
-    this.videos = [];
+        // video instances container
+        this.videos = [];
 
-    // plugin instances container
-    this.plugins = [];
+        // plugin instances container
+        this.plugins = [];
 
-    // global player state
-    this.playerStateIs = playerState.inactive;
+        // global player state
+        this.playerStateIs = playerState.inactive;
 
-    // ticker for onUpdate interval on 0.1 seconds
-    this.ticker = new Ticker(this.onUpdate.bind(this), 100);
+        // ticker for onUpdate interval on 0.1 seconds
+        this.ticker = new Ticker(this.onUpdate.bind(this), 100);
 
-    // dependencie loading status
-    this._dependenciesLoaded = false;
+        // dependencie loading status
+        this._dependenciesLoaded = false;
 
-    this.settings = extend({
-        hoster: 'youtube',
-        videos: [],
-        area: null,
-        maxVideos: 6,
-        volume: 100,
-        template: '<div id="SplitPlayer"></div>'
-    }, settings);
+        this.settings = extend({
+            hoster: 'youtube',
+            videos: [],
+            area: null,
+            maxVideos: 6,
+            volume: 100,
+            template: '<div id="SplitPlayer"></div>'
+        }, settings);
 
-    this.mount();
+        this.mount();
 
-    return this;
-};
-
-SplitPlayer.prototype = {
+        return this;
+    }
 
     mount() {
         this.create();
@@ -58,12 +57,12 @@ SplitPlayer.prototype = {
                 Plugin.mount();
             }
         }
-    },
+    }
 
     create() {
         this._render();
         this.addVideos(this.settings.videos);
-    },
+    }
 
     /*
      * add Plugins
@@ -72,7 +71,7 @@ SplitPlayer.prototype = {
         let _instance = new Plugin(this, settings || {});
         this.plugins.push(_instance);
         return _instance;
-    },
+    }
 
     _onVideoDependeciesReady() {
         // set loading state
@@ -85,7 +84,7 @@ SplitPlayer.prototype = {
         this._dependenciesLoaded = true;
 
         console.info('api loaded');
-    },
+    }
 
     addVideos(videos) {
 
@@ -102,7 +101,7 @@ SplitPlayer.prototype = {
         }
 
         return this;
-    },
+    }
 
     addVideo(video) {
 
@@ -138,7 +137,7 @@ SplitPlayer.prototype = {
         );
 
         return current;
-    },
+    }
 
     getVideo(videoId) {
         // get video from array
@@ -147,7 +146,7 @@ SplitPlayer.prototype = {
         });
 
         return result || false;
-    },
+    }
 
     // destroy all videos and player himself
     destroy() {
@@ -164,7 +163,7 @@ SplitPlayer.prototype = {
         }
 
         this.$dom.remove();
-    },
+    }
 
     destroyVideo(videoId) {
         // first remove video from player list
@@ -180,7 +179,7 @@ SplitPlayer.prototype = {
         this.removeVideo(videoId)
 
         return true;
-    },
+    }
 
     empty() {
         this.duration = 0;
@@ -189,13 +188,13 @@ SplitPlayer.prototype = {
         for (let video of this.videos) {
             this.destroyVideo(video.settings.videoId);
         }
-    },
+    }
 
     removeVideos(videoIdArray) {
         for (var videoId of videoIdArray) {
             this.removeVideo(videoId);
         }
-    },
+    }
 
     removeVideo(videoId) {
 
@@ -222,7 +221,7 @@ SplitPlayer.prototype = {
 
         video = null;
         return true;
-    },
+    }
 
     /*
      * called after all video player ready initialized
@@ -245,7 +244,7 @@ SplitPlayer.prototype = {
                 Plugin.onReady();
             }
         }
-    },
+    }
 
     onUpdate() {
         // hook all plugins
@@ -254,7 +253,7 @@ SplitPlayer.prototype = {
                 Plugin.onUpdate();
             }
         }
-    },
+    }
 
     changeState(state) {
 
@@ -271,12 +270,12 @@ SplitPlayer.prototype = {
             return this.play();
         }
 
-    },
+    }
 
     getPlayedTime() {
         let times = this.videos.map(v => v.getPlayedTime());
         return Math.max(...times);
-    },
+    }
 
     play() {
 
@@ -299,7 +298,7 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.playing;
 
         return this;
-    },
+    }
 
     pause() {
 
@@ -326,7 +325,7 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.pause;
 
         return this;
-    },
+    }
 
     /*
      * Toggle Video from play to pause vice versa
@@ -336,7 +335,7 @@ SplitPlayer.prototype = {
             return this.play();
         }
         return this.pause();
-    },
+    }
 
     stop() {
 
@@ -365,14 +364,14 @@ SplitPlayer.prototype = {
         this.playerStateIs = playerState.unstarted;
 
         return this;
-    },
+    }
 
     timeTo(time) {
         for (let video of this.videos) {
             video.timeTo(time);
         }
         return this;
-    },
+    }
 
     mute() {
         for (let video of this.videos) {
@@ -385,7 +384,7 @@ SplitPlayer.prototype = {
                 Plugin.onMute();
             }
         }
-    },
+    }
 
     volumeTo(percentage) {
 
@@ -411,7 +410,7 @@ SplitPlayer.prototype = {
         }
 
         return this;
-    },
+    }
 
     _videosInState(state) {
         let inState = true;
@@ -422,7 +421,7 @@ SplitPlayer.prototype = {
         }
 
         return inState;
-    },
+    }
 
     _render() {
         if (this.settings.area === null) {
@@ -437,10 +436,7 @@ SplitPlayer.prototype = {
         this.$dom = $('#SplitPlayer');
     }
 
-};
-
-if (typeof window !== 'undefined') {
-    window.SplitPlayer = SplitPlayer;
 }
 
+window.SplitPlayer = SplitPlayer;
 module.exports = SplitPlayer;

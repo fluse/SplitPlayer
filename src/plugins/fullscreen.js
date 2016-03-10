@@ -1,32 +1,30 @@
+'use strict';
+
 var extend = require('extend');
 var $ = require('domtastic');
 
-'use strict';
+module.exports = class Fullscreen {
+    constructor (player, settings) {
 
-var Fullscreen = function (player, settings) {
+        this.player = player;
 
-    this.player = player;
+        this.isFullscreen = false;
 
-    this.isFullscreen = false;
+        this.settings = extend({}, {
+            area: player.settings.area,
+            onLaunch: function () {},
+            onExit: function () {}
+        }, settings);
 
-    this.settings = extend({}, {
-        area: player.settings.area,
-        onLaunch: function () {},
-        onExit: function () {}
-    }, settings);
+        this.setListener();
 
-    this.setListener();
+        this.extendPlayer();
 
-    this.extendPlayer();
-
-    return this;
-};
-
-Fullscreen.prototype = {
+    }
 
     extendPlayer() {
         this.player.fullscreen = this;
-    },
+    }
 
     setListener() {
         let docEvLi = document.addEventListener;
@@ -34,7 +32,7 @@ Fullscreen.prototype = {
         docEvLi('mozfullscreenchange', this.exit.bind(this), false);
         docEvLi('fullscreenchange', this.exit.bind(this), false);
         docEvLi('MSFullscreenChange', this.exit.bind(this), false);
-    },
+    }
 
     toggle() {
         if (this.isFullscreen) {
@@ -42,7 +40,7 @@ Fullscreen.prototype = {
         } else {
             this.launch();
         }
-    },
+    }
 
     launch() {
         if (this.settings.area === null) {
@@ -67,7 +65,7 @@ Fullscreen.prototype = {
             this.isFullscreen = true;
         }, 600);
 
-    },
+    }
 
     exit() {
 
@@ -88,5 +86,3 @@ Fullscreen.prototype = {
     }
 
 };
-
-module.exports = Fullscreen;

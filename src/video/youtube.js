@@ -4,30 +4,26 @@ var extend = require('extend');
 var getScript = require('./../helper/getScript.js');
 var $ = require('domtastic');
 
-var videoSkeleton = require('./skeleton.js');
 const playerState = require('./../constants');
 
-var YoutubeVideo = function (player, settings) {
+module.exports = class YoutubeVideo {
 
-    this.player = player;
-    this.videoPlayer = null;
+    constructor(player, settings) {
 
-    this.settings = extend({
-        videoId: null,
-        startSeconds: 0,
-        isHidden: false,
-        isMuted: false,
-        controls: 1
-    }, settings);
+        this.loadingDependencies = false;
+        this.player = player;
+        this.videoPlayer = null;
 
-    this.isMuted = this.settings.isMuted;
+        this.settings = extend({
+            videoId: null,
+            startSeconds: 0,
+            isHidden: false,
+            isMuted: false,
+            controls: 1
+        }, settings);
 
-    return this;
-};
-
-YoutubeVideo.prototype = extend({}, videoSkeleton, {
-
-    loadingDependencies: false,
+        this.isMuted = this.settings.isMuted;
+    }
 
     load(callback) {
 
@@ -40,12 +36,12 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         getScript('//youtube.com/iframe_api', function () {
             window.onYouTubeIframeAPIReady = callback;
         });
-    },
+    }
 
     mount() {
         this._render();
         this.create();
-    },
+    }
 
     create() {
 
@@ -63,7 +59,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
                 onError: this.onError.bind(this)
             }
         });
-    },
+    }
 
     onReady() {
         this.setPlayerDuration();
@@ -73,7 +69,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         }
         this.timeTo(0);
         this.player.onReady();
-    },
+    }
 
     onError(err) {
 
@@ -83,7 +79,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         }
 
         this.noVideo();
-    },
+    }
 
     onStateChange(event) {
 
@@ -100,7 +96,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         }
 
         console.info('state %s not fetched', event.data);
-    },
+    }
 
     hide() {
         if (this.settings.isHidden) {
@@ -109,7 +105,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
 
         $('#' + this.settings.videoId).hide();
         this.settings.isHidden = true;
-    },
+    }
 
     show() {
         if (!this.settings.isHidden) {
@@ -119,15 +115,15 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         $('#' + this.settings.videoId).show();
 
         this.settings.isHidden = false;
-    },
+    }
 
     getPlayerState() {
         return this.videoPlayer.getPlayerState();
-    },
+    }
 
     remove() {
         this.videoPlayer.destroy();
-    },
+    }
 
     timeTo(time) {
 
@@ -139,7 +135,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         }
 
         this.videoPlayer.seekTo(time);
-    },
+    }
 
     volumeTo(percentage) {
         if (this.isMuted) {
@@ -148,7 +144,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
 
         this.videoPlayer.setVolume(percentage);
         return true;
-    },
+    }
 
     mute() {
         this.videoPlayer.mute();
@@ -156,7 +152,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         this.settings.isMuted = this.isMuted;
 
         return true;
-    },
+    }
 
     unMute() {
         this.isMuted = false;
@@ -165,25 +161,25 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         this.volumeTo(this.player.settings.volume);
 
         return true;
-    },
+    }
 
     play() {
         this.videoPlayer.playVideo();
-    },
+    }
 
     pause() {
         this.videoPlayer.pauseVideo();
-    },
+    }
 
     stop() {
         this.timeTo(0);
         this.pause();
-    },
+    }
 
     getDuration() {
         var duration = (this.videoPlayer.getDuration() || 0);
         return (duration - this.settings.startSeconds);
-    },
+    }
 
     setPlayerDuration() {
         let _duration = this.getDuration();
@@ -192,20 +188,20 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
             this.player.duration = _duration;
             this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
-    },
+    }
 
     getPlayedTime() {
         return this.videoPlayer.getCurrentTime() - this.settings.startSeconds;
-    },
+    }
 
     _render() {
         $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div id="replacer' + this.settings.videoId + '"><div></div>');
-    },
+    }
 
     noVideo() {
         this.player.removeVideo(this.settings.videoId);
         $('#' + this.settings.videoId).html('<div class="no-video"></div>');
-    },
+    }
 
     destroy() {
         // remove youtube video iframe
@@ -214,6 +210,4 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
         return true;
     }
 
-});
-
-module.exports = YoutubeVideo;
+}

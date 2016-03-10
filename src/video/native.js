@@ -3,34 +3,33 @@
 var extend = require('extend');
 var $ = require('domtastic');
 
-var videoSkeleton = require('./skeleton.js');
 const playerState = require('./../constants');
 
-var NativeVideo = function (player, settings) {
+module.exports = class NativeVideo {
 
-    this.player = player;
-    this.videoPlayer = null;
-    this.videoState = playerState.loading;
+    constructor (player, settings) {
 
-    this.settings = extend({
-        videoId: new Date().getTime().toString(),
-        startSeconds: 0,
-        videoUrl: null,
-        isMuted: false,
-        controls: 1
-    }, settings);
+        this.player = player;
+        this.videoPlayer = null;
+        this.videoState = playerState.loading;
 
-    this.isMuted = this.settings.isMuted;
+        this.settings = extend({
+            videoId: new Date().getTime().toString(),
+            startSeconds: 0,
+            videoUrl: null,
+            isMuted: false,
+            controls: 1
+        }, settings);
 
-    return this;
-};
+        this.isMuted = this.settings.isMuted;
+    }
 
-NativeVideo.prototype = extend({}, videoSkeleton, {
+    load() {}
 
     mount() {
         this._render();
         this.create();
-    },
+    }
 
     create() {
         this.videoPlayer = $('#vid' + this.settings.videoId)[0];
@@ -41,7 +40,7 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         this.videoPlayer.addEventListener('pause', this.onStateChange.bind(this, playerState.pause), false);
 
         this.videoPlayer.addEventListener('progress', function (e, a) {}, false);
-    },
+    }
 
     onReady() {
         this.setPlayerDuration();
@@ -50,7 +49,7 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         }
         this.timeTo(0);
         this.player.onReady();
-    },
+    }
 
     onStateChange(state) {
         return this.videoState = state;
@@ -68,12 +67,12 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         }
 
         console.info('state %s not fetched', event.data);
-    },
+    }
 
     getDuration() {
         var duration = (this.videoPlayer.duration || 0);
         return (duration - this.settings.startSeconds);
-    },
+    }
 
     setPlayerDuration() {
         let _duration = this.getDuration();
@@ -82,30 +81,30 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
             this.player.duration = _duration;
             this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
-    },
+    }
 
     getPlayedTime() {
         return this.videoPlayer.currentTime - this.settings.startSeconds;
-    },
+    }
 
     getPlayerState() {
         return this.videoState;
-    },
+    }
 
     play() {
         this.videoPlayer.play();
-    },
+    }
 
     pause() {
         this.videoPlayer.pause();
-    },
+    }
 
     mute() {
         this.isMuted = true;
         this.settings.isMuted = this.isMuted;
         this.videoPlayer.muted = this.isMuted;
         return true;
-    },
+    }
 
     unMute() {
         this.isMuted = false;
@@ -114,7 +113,7 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         this.volumeTo(this.player.settings.volume);
 
         return true;
-    },
+    }
 
     volumeTo(percentage) {
         if (this.isMuted) {
@@ -126,7 +125,7 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         console.log(nativeValue);
         this.videoPlayer.volume = nativeValue;
         return true;
-    },
+    }
 
     timeTo(time) {
 
@@ -138,12 +137,12 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         }
 
         this.videoPlayer.currentTime = time;
-    },
+    }
 
     stop() {
         this.videoPlayer.pause();
         this.timeTo(0);
-    },
+    }
 
     _render() {
         var html = '<div id="%id%" class="video"><video id="vid%id%" autostart="false"%controls%><source src="%url%" type="video/mp4" /></video></div>';
@@ -154,6 +153,4 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
 
         $('#SplitPlayer').append(html);
     }
-});
-
-module.exports = NativeVideo;
+}
