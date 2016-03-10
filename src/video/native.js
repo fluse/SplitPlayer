@@ -3,6 +3,7 @@
 var extend = require('extend');
 var $ = require('domtastic');
 
+var videoSkeleton = require('./skeleton.js');
 const playerState = require('./../constants');
 
 var NativeVideo = function (player, settings) {
@@ -22,13 +23,7 @@ var NativeVideo = function (player, settings) {
     return this;
 };
 
-NativeVideo.prototype = {
-
-    loadingDependencies: true,
-
-    load(callback) {
-
-    },
+NativeVideo.prototype = extend({}, videoSkeleton, {
 
     mount() {
         this._render();
@@ -38,6 +33,17 @@ NativeVideo.prototype = {
     create() {
         this.videoPlayer = $('#vid' + this.settings.videoId)[0];
         console.log(this.videoPlayer);
+
+        this.videoPlayer.addEventListener('loadeddata', this.onReady.bind(this), false);
+    },
+
+    onReady() {
+        this.setPlayerDuration();
+        if (this.settings.isMuted) {
+            this.mute();
+        }
+        this.timeTo(0);
+        this.player.onReady();
     },
 
     getDuration() {
@@ -78,6 +84,7 @@ NativeVideo.prototype = {
     },
 
     unMute() {
+        console.log('unmuted');
         this.isMuted = false;
         this.settings.isMuted = this.isMuted;
         this.videoPlayer.muted = this.isMuted;
@@ -93,17 +100,31 @@ NativeVideo.prototype = {
 
         // convert to native value
         var nativeValue = percentage / 100;
+        console.log(nativeValue);
         this.videoPlayer.volume = nativeValue;
         return true;
     },
 
+    timeTo(time) {
+
+        time = (time + this.settings.startSeconds);
+
+        if (time >= this.getDuration()) {
+            this.stop();
+            return console.info('time for %s out of range', this.settings.videoId);
+        }
+
+        this.videoPlayer.currentTime = time;
+    },
+
     stop() {
-        this.videoPlayer.stop();
+        this.videoPlayer.pause();
+        this.timeTo(0);
     },
 
     _render() {
         $('#SplitPlayer').append('<div id="' + this.settings.videoId + '" class="video"><video id="vid' + this.settings.videoId + '"><source src="' + this.settings.videoUrl + '" type="video/mp4" /></video></div>');
     }
-};
+});
 
 module.exports = NativeVideo;

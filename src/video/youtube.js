@@ -4,6 +4,7 @@ var extend = require('extend');
 var getScript = require('./../helper/getScript.js');
 var $ = require('domtastic');
 
+var videoSkeleton = require('./skeleton.js');
 const playerState = require('./../constants');
 
 var YoutubeVideo = function (player, settings) {
@@ -23,7 +24,7 @@ var YoutubeVideo = function (player, settings) {
     return this;
 };
 
-YoutubeVideo.prototype = {
+YoutubeVideo.prototype = extend({}, videoSkeleton, {
 
     loadingDependencies: false,
 
@@ -65,6 +66,7 @@ YoutubeVideo.prototype = {
 
     onReady() {
         this.setPlayerDuration();
+
         if (this.settings.isMuted) {
             this.mute();
         }
@@ -128,12 +130,12 @@ YoutubeVideo.prototype = {
 
     timeTo(time) {
 
+        time = (time + this.settings.startSeconds);
+
         if (time >= this.getDuration()) {
             this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
-
-        time = (time + this.settings.startSeconds);
 
         this.videoPlayer.seekTo(time);
     },
@@ -211,6 +213,6 @@ YoutubeVideo.prototype = {
         return true;
     }
 
-};
+});
 
 module.exports = YoutubeVideo;

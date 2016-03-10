@@ -1,13 +1,13 @@
 'use strict';
 
+/* Dependencies */
 var $ = require('domtastic');
 var extend = require('extend');
-var Ticker = require('./helper/ticker');
+var _ = require('underscore');
 
+var Ticker = require('./helper/ticker');
 var SplitPlayerVideo = require('./video/');
 var SplitPlayerPlugins = require('./plugins/');
-
-var _ = require('underscore');
 
 const playerState = require('./constants.js');
 
@@ -141,6 +141,7 @@ SplitPlayer.prototype = {
     },
 
     getVideo(videoId) {
+        console.log(videoId);
         // get video from array
         var result = _.find(this.videos, function(video) {
             return video.settings.videoId === videoId;

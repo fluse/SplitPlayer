@@ -3941,6 +3941,8 @@ module.exports = Ticker;
 },{}],26:[function(require,module,exports){
 'use strict';
 
+/* Dependencies */
+
 function _toConsumableArray(arr) {
     if (Array.isArray(arr)) {
         for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
@@ -3953,12 +3955,11 @@ function _toConsumableArray(arr) {
 
 var $ = require('domtastic');
 var extend = require('extend');
-var Ticker = require('./helper/ticker');
+var _ = require('underscore');
 
+var Ticker = require('./helper/ticker');
 var SplitPlayerVideo = require('./video/');
 var SplitPlayerPlugins = require('./plugins/');
-
-var _ = require('underscore');
 
 var playerState = require('./constants.js');
 
@@ -4145,6 +4146,7 @@ SplitPlayer.prototype = {
         return current;
     },
     getVideo: function getVideo(videoId) {
+        console.log(videoId);
         // get video from array
         var result = _.find(this.videos, function (video) {
             return video.settings.videoId === videoId;
@@ -5031,7 +5033,7 @@ SplitPlayerSoundTrack.prototype = {
         for (var i = 0; i < activeVideos.length; i++) {
 
             var video = player.getVideo(activeVideos[i]);
-
+            console.log(video);
             if (video !== false) {
                 video.unMute();
             }
@@ -5580,15 +5582,17 @@ module.exports = SplitPlayerTimeSync;
 
 module.exports = {
     youtube: require('./youtube.js'),
-    native: require('./native.js')
+    native: require('./native.js'),
+    vimeo: require('./vimeo.js')
 };
 
-},{"./native.js":37,"./youtube.js":38}],37:[function(require,module,exports){
+},{"./native.js":37,"./vimeo.js":39,"./youtube.js":40}],37:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
 var $ = require('domtastic');
 
+var videoSkeleton = require('./skeleton.js');
 var playerState = require('./../constants');
 
 var NativeVideo = function NativeVideo(player, settings) {
@@ -5608,11 +5612,7 @@ var NativeVideo = function NativeVideo(player, settings) {
     return this;
 };
 
-NativeVideo.prototype = {
-
-    loadingDependencies: true,
-
-    load: function load(callback) {},
+NativeVideo.prototype = extend({}, videoSkeleton, {
     mount: function mount() {
         this._render();
         this.create();
@@ -5620,6 +5620,16 @@ NativeVideo.prototype = {
     create: function create() {
         this.videoPlayer = $('#vid' + this.settings.videoId)[0];
         console.log(this.videoPlayer);
+
+        this.videoPlayer.addEventListener('loadeddata', this.onReady.bind(this), false);
+    },
+    onReady: function onReady() {
+        this.setPlayerDuration();
+        if (this.settings.isMuted) {
+            this.mute();
+        }
+        this.timeTo(0);
+        this.player.onReady();
     },
     getDuration: function getDuration() {
         var duration = this.videoPlayer.duration || 0;
@@ -5652,6 +5662,7 @@ NativeVideo.prototype = {
         return true;
     },
     unMute: function unMute() {
+        console.log('unmuted');
         this.isMuted = false;
         this.settings.isMuted = this.isMuted;
         this.videoPlayer.muted = this.isMuted;
@@ -5666,26 +5677,75 @@ NativeVideo.prototype = {
 
         // convert to native value
         var nativeValue = percentage / 100;
+        console.log(nativeValue);
         this.videoPlayer.volume = nativeValue;
         return true;
     },
+    timeTo: function timeTo(time) {
+
+        time = time + this.settings.startSeconds;
+
+        if (time >= this.getDuration()) {
+            this.stop();
+            return console.info('time for %s out of range', this.settings.videoId);
+        }
+
+        this.videoPlayer.currentTime = time;
+    },
     stop: function stop() {
-        this.videoPlayer.stop();
+        this.videoPlayer.pause();
+        this.timeTo(0);
     },
     _render: function _render() {
         $('#SplitPlayer').append('<div id="' + this.settings.videoId + '" class="video"><video id="vid' + this.settings.videoId + '"><source src="' + this.settings.videoUrl + '" type="video/mp4" /></video></div>');
     }
-};
+});
 
 module.exports = NativeVideo;
 
-},{"./../constants":23,"domtastic":14,"extend":21}],38:[function(require,module,exports){
+},{"./../constants":23,"./skeleton.js":38,"domtastic":14,"extend":21}],38:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+
+    loadingDependencies: false,
+
+    load: function load(callback) {},
+    mount: function mount() {},
+    create: function create() {},
+    onReady: function onReady() {},
+    onError: function onError(err) {},
+    onStateChange: function onStateChange(event) {},
+    hide: function hide() {},
+    show: function show() {},
+    getPlayerState: function getPlayerState() {},
+    remove: function remove() {},
+    timeTo: function timeTo(time) {},
+    volumeTo: function volumeTo(percentage) {},
+    mute: function mute() {},
+    unMute: function unMute() {},
+    play: function play() {},
+    pause: function pause() {},
+    stop: function stop() {},
+    getDuration: function getDuration() {},
+    setPlayerDuration: function setPlayerDuration() {},
+    getPlayedTime: function getPlayedTime() {},
+    _render: function _render() {},
+    noVideo: function noVideo() {},
+    destroy: function destroy() {}
+};
+
+},{}],39:[function(require,module,exports){
+"use strict";
+
+},{}],40:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
 var getScript = require('./../helper/getScript.js');
 var $ = require('domtastic');
 
+var videoSkeleton = require('./skeleton.js');
 var playerState = require('./../constants');
 
 var YoutubeVideo = function YoutubeVideo(player, settings) {
@@ -5705,7 +5765,7 @@ var YoutubeVideo = function YoutubeVideo(player, settings) {
     return this;
 };
 
-YoutubeVideo.prototype = {
+YoutubeVideo.prototype = extend({}, videoSkeleton, {
 
     loadingDependencies: false,
 
@@ -5744,6 +5804,7 @@ YoutubeVideo.prototype = {
     },
     onReady: function onReady() {
         this.setPlayerDuration();
+
         if (this.settings.isMuted) {
             this.mute();
         }
@@ -5800,12 +5861,12 @@ YoutubeVideo.prototype = {
     },
     timeTo: function timeTo(time) {
 
+        time = time + this.settings.startSeconds;
+
         if (time >= this.getDuration()) {
             this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
-
-        time = time + this.settings.startSeconds;
 
         this.videoPlayer.seekTo(time);
     },
@@ -5870,8 +5931,8 @@ YoutubeVideo.prototype = {
 
         return true;
     }
-};
+});
 
 module.exports = YoutubeVideo;
 
-},{"./../constants":23,"./../helper/getScript.js":24,"domtastic":14,"extend":21}]},{},[26]);
+},{"./../constants":23,"./../helper/getScript.js":24,"./skeleton.js":38,"domtastic":14,"extend":21}]},{},[26]);
