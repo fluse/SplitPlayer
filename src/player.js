@@ -141,7 +141,6 @@ SplitPlayer.prototype = {
     },
 
     getVideo(videoId) {
-        console.log(videoId);
         // get video from array
         var result = _.find(this.videos, function(video) {
             return video.settings.videoId === videoId;

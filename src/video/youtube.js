@@ -16,7 +16,8 @@ var YoutubeVideo = function (player, settings) {
         videoId: null,
         startSeconds: 0,
         isHidden: false,
-        isMuted: false
+        isMuted: false,
+        controls: 1
     }, settings);
 
     this.isMuted = this.settings.isMuted;
@@ -54,7 +55,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
             videoId: this.settings.videoId,
             startSeconds: this.settings.startSeconds,
             playerVars: {
-                'controls': 1
+                controls: this.settings.controls
             },
             events: {
                 onReady: this.onReady.bind(this),

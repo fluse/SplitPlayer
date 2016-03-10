@@ -11,22 +11,26 @@ SplitPlayer is a high flexible extendable Video Player, that keeps multiple yout
 - Multi Videos
 - Analytics Support
 - Sound Selection
+- Sound regulation
 - Timepicker on timeline select set new time to each video
 - Hide or show specific videos
-- Synchronize Interface (planned)
-- Playlists (planned)
-- Picture in Picture Mode (planned)
-- Fullscreen Mode (planned)
-- controle videos cross tabs (planned)
+- Fullscreen Mode
+
+## Supported Hoster
+- Youtube
+- Native (experimental)
+
+## Planned
+- Synchronize Interface
+- Playlists
+- Auto Sound Select if Video ended
+- Picture in Picture Mode
+- controle videos cross tabs
+- Vimeo
 
 Productive integration on http://splitplay.tv
 
 example on http://player.splitplay.tv
-
-## Supported Hoster
-- Youtube
-- Vimeo (planned)
-- Native (planned)
 
 ## Browser Compatibility
 - IE 9+
@@ -97,7 +101,8 @@ var video = {
     hoster: String,
     videoId: String,
     startSeconds: Number,
-    isMuted: Boolean
+    isMuted: Boolean,
+    controls: Number
 }
 ```
 
@@ -107,6 +112,7 @@ var video = {
 | videoId      | String      |   id from youtube or other services |
 | startSeconds | Number      |    set seconds, where video will begin, this supports float values like 1.2 |
 | isMuted | Boolean      |    false or true do unmute or mute a video initial |
+| controls | Number      |    1 show controls 0 hide it initial 1 |
 
 ### Examples
 ```javascript

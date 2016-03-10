@@ -4146,7 +4146,6 @@ SplitPlayer.prototype = {
         return current;
     },
     getVideo: function getVideo(videoId) {
-        console.log(videoId);
         // get video from array
         var result = _.find(this.videos, function (video) {
             return video.settings.videoId === videoId;
@@ -4839,7 +4838,7 @@ if (typeof window !== 'undefined') {
 
 module.exports = SplitPlayer;
 
-},{"./constants.js":23,"./helper/ticker":25,"./plugins/":28,"./video/":36,"domtastic":14,"extend":21,"underscore":22}],27:[function(require,module,exports){
+},{"./constants.js":23,"./helper/ticker":25,"./plugins/":29,"./video/":37,"domtastic":14,"extend":21,"underscore":22}],27:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
@@ -4886,6 +4885,97 @@ module.exports = SplitPlayerAnalytics;
 },{"extend":21}],28:[function(require,module,exports){
 'use strict';
 
+var extend = require('extend');
+var $ = require('domtastic');
+
+'use strict';
+
+var Fullscreen = function Fullscreen(player, settings) {
+
+    this.player = player;
+
+    this.isFullscreen = false;
+
+    this.settings = extend({}, {
+        area: player.settings.area,
+        onLaunch: function onLaunch() {},
+        onExit: function onExit() {}
+    }, settings);
+
+    this.setListener();
+
+    this.extendPlayer();
+
+    return this;
+};
+
+Fullscreen.prototype = {
+    extendPlayer: function extendPlayer() {
+        this.player.fullscreen = this;
+    },
+    setListener: function setListener() {
+        var docEvLi = document.addEventListener;
+        docEvLi('webkitfullscreenchange', this.exit.bind(this), false);
+        docEvLi('mozfullscreenchange', this.exit.bind(this), false);
+        docEvLi('fullscreenchange', this.exit.bind(this), false);
+        docEvLi('MSFullscreenChange', this.exit.bind(this), false);
+    },
+    toggle: function toggle() {
+        if (this.isFullscreen) {
+            this.exit();
+        } else {
+            this.launch();
+        }
+    },
+    launch: function launch() {
+        var _this = this;
+
+        if (this.settings.area === null) {
+            return false;
+        }
+
+        var element = $(this.settings.area)[0];
+
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+
+        this.settings.onLaunch();
+
+        window.setTimeout(function () {
+            _this.isFullscreen = true;
+        }, 600);
+    },
+    exit: function exit() {
+
+        if (this.isFullscreen) {
+
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+
+            this.settings.onExit();
+
+            this.isFullscreen = false;
+        }
+    }
+};
+
+module.exports = Fullscreen;
+
+},{"domtastic":14,"extend":21}],29:[function(require,module,exports){
+'use strict';
+
 var SplitPlayerPlugins = {
     TimeManager: require('./time/manager.js'),
     TimeLine: require('./time/line.js'),
@@ -4894,7 +4984,8 @@ var SplitPlayerPlugins = {
     TimeDisplay: require('./time/display.js'),
     SoundManager: require('./sound/manager.js'),
     SoundTrack: require('./sound/track.js'),
-    Analytics: require('./analytics.js')
+    Analytics: require('./analytics.js'),
+    Fullscreen: require('./fullscreen.js')
 };
 
 if (typeof window !== 'undefined') {
@@ -4902,7 +4993,7 @@ if (typeof window !== 'undefined') {
 }
 module.exports = SplitPlayerPlugins;
 
-},{"./analytics.js":27,"./sound/manager.js":29,"./sound/track.js":30,"./time/display.js":31,"./time/line.js":32,"./time/manager.js":33,"./time/picker.js":34,"./time/sync.js":35}],29:[function(require,module,exports){
+},{"./analytics.js":27,"./fullscreen.js":28,"./sound/manager.js":30,"./sound/track.js":31,"./time/display.js":32,"./time/line.js":33,"./time/manager.js":34,"./time/picker.js":35,"./time/sync.js":36}],30:[function(require,module,exports){
 'use strict';
 
 /* globals $ */
@@ -4985,7 +5076,7 @@ SplitPlayerSoundManager.prototype = {
 
 module.exports = SplitPlayerSoundManager;
 
-},{"domtastic":14,"extend":21}],30:[function(require,module,exports){
+},{"domtastic":14,"extend":21}],31:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
@@ -5092,7 +5183,7 @@ SplitPlayerSoundTrack.prototype = {
 
 module.exports = SplitPlayerSoundTrack;
 
-},{"domtastic":14,"extend":21}],31:[function(require,module,exports){
+},{"domtastic":14,"extend":21}],32:[function(require,module,exports){
 'use strict';
 
 /* globals $ */
@@ -5147,7 +5238,7 @@ SplitPlayerTimeDisplay.prototype = {
 
 module.exports = SplitPlayerTimeDisplay;
 
-},{"domtastic":14,"extend":21}],32:[function(require,module,exports){
+},{"domtastic":14,"extend":21}],33:[function(require,module,exports){
 'use strict';
 
 /* globals $ */
@@ -5223,7 +5314,7 @@ SplitPlayerTimeLine.prototype = {
 
 module.exports = SplitPlayerTimeLine;
 
-},{"domtastic":14,"extend":21}],33:[function(require,module,exports){
+},{"domtastic":14,"extend":21}],34:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
@@ -5362,7 +5453,7 @@ SplitPlayerTimeManager.prototype = {
 
 module.exports = SplitPlayerTimeManager;
 
-},{"extend":21}],34:[function(require,module,exports){
+},{"extend":21}],35:[function(require,module,exports){
 'use strict';
 
 /* globals $ */
@@ -5431,7 +5522,7 @@ SplitPlayerTimePicker.prototype = {
 
 module.exports = SplitPlayerTimePicker;
 
-},{"domtastic":14,"extend":21}],35:[function(require,module,exports){
+},{"domtastic":14,"extend":21}],36:[function(require,module,exports){
 'use strict';
 
 /* globals $ */
@@ -5577,7 +5668,7 @@ SplitPlayerTimeSync.prototype = {
 
 module.exports = SplitPlayerTimeSync;
 
-},{"domtastic":14}],36:[function(require,module,exports){
+},{"domtastic":14}],37:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -5586,7 +5677,7 @@ module.exports = {
     vimeo: require('./vimeo.js')
 };
 
-},{"./native.js":37,"./vimeo.js":39,"./youtube.js":40}],37:[function(require,module,exports){
+},{"./native.js":38,"./vimeo.js":40,"./youtube.js":41}],38:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
@@ -5599,12 +5690,14 @@ var NativeVideo = function NativeVideo(player, settings) {
 
     this.player = player;
     this.videoPlayer = null;
+    this.videoState = playerState.loading;
 
     this.settings = extend({
-        videoId: new Date().getTime(),
+        videoId: new Date().getTime().toString(),
         startSeconds: 0,
         videoUrl: null,
-        isMuted: false
+        isMuted: false,
+        controls: 1
     }, settings);
 
     this.isMuted = this.settings.isMuted;
@@ -5619,9 +5712,13 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
     },
     create: function create() {
         this.videoPlayer = $('#vid' + this.settings.videoId)[0];
-        console.log(this.videoPlayer);
 
         this.videoPlayer.addEventListener('loadeddata', this.onReady.bind(this), false);
+        this.videoPlayer.addEventListener('canplaythrough', this.onStateChange.bind(this, playerState.unstarted), false);
+        this.videoPlayer.addEventListener('play', this.onStateChange.bind(this, playerState.playing), false);
+        this.videoPlayer.addEventListener('pause', this.onStateChange.bind(this, playerState.pause), false);
+
+        this.videoPlayer.addEventListener('progress', function (e, a) {}, false);
     },
     onReady: function onReady() {
         this.setPlayerDuration();
@@ -5630,6 +5727,23 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         }
         this.timeTo(0);
         this.player.onReady();
+    },
+    onStateChange: function onStateChange(state) {
+        return this.videoState = state;
+
+        if (state === YT.PlayerState.BUFFERING) {
+            return this.player.changeState(playerState.buffering);
+        }
+
+        if (state === YT.PlayerState.PLAYING) {
+            return this.player.changeState(playerState.playing);
+        }
+
+        if (state === YT.PlayerState.PAUSED) {
+            return this.player.changeState(playerState.pause);
+        }
+
+        console.info('state %s not fetched', event.data);
     },
     getDuration: function getDuration() {
         var duration = this.videoPlayer.duration || 0;
@@ -5647,7 +5761,7 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         return this.videoPlayer.currentTime - this.settings.startSeconds;
     },
     getPlayerState: function getPlayerState() {
-        return null;
+        return this.videoState;
     },
     play: function play() {
         this.videoPlayer.play();
@@ -5662,7 +5776,6 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         return true;
     },
     unMute: function unMute() {
-        console.log('unmuted');
         this.isMuted = false;
         this.settings.isMuted = this.isMuted;
         this.videoPlayer.muted = this.isMuted;
@@ -5697,13 +5810,16 @@ NativeVideo.prototype = extend({}, videoSkeleton, {
         this.timeTo(0);
     },
     _render: function _render() {
-        $('#SplitPlayer').append('<div id="' + this.settings.videoId + '" class="video"><video id="vid' + this.settings.videoId + '"><source src="' + this.settings.videoUrl + '" type="video/mp4" /></video></div>');
+        var html = '<div id="%id%" class="video"><video id="vid%id%" autostart="false"%controls%><source src="%url%" type="video/mp4" /></video></div>';
+        var html = html.replace(/%id%/g, this.settings.videoId || '').replace(/%url%/g, this.settings.videoUrl || '').replace(/%controls%/g, this.settings.controls > 0 ? ' controls="controls"' : '');
+
+        $('#SplitPlayer').append(html);
     }
 });
 
 module.exports = NativeVideo;
 
-},{"./../constants":23,"./skeleton.js":38,"domtastic":14,"extend":21}],38:[function(require,module,exports){
+},{"./../constants":23,"./skeleton.js":39,"domtastic":14,"extend":21}],39:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -5735,10 +5851,10 @@ module.exports = {
     destroy: function destroy() {}
 };
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 var extend = require('extend');
@@ -5757,7 +5873,8 @@ var YoutubeVideo = function YoutubeVideo(player, settings) {
         videoId: null,
         startSeconds: 0,
         isHidden: false,
-        isMuted: false
+        isMuted: false,
+        controls: 1
     }, settings);
 
     this.isMuted = this.settings.isMuted;
@@ -5793,7 +5910,7 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
             videoId: this.settings.videoId,
             startSeconds: this.settings.startSeconds,
             playerVars: {
-                'controls': 1
+                controls: this.settings.controls
             },
             events: {
                 onReady: this.onReady.bind(this),
@@ -5935,4 +6052,4 @@ YoutubeVideo.prototype = extend({}, videoSkeleton, {
 
 module.exports = YoutubeVideo;
 
-},{"./../constants":23,"./../helper/getScript.js":24,"./skeleton.js":38,"domtastic":14,"extend":21}]},{},[26]);
+},{"./../constants":23,"./../helper/getScript.js":24,"./skeleton.js":39,"domtastic":14,"extend":21}]},{},[26]);

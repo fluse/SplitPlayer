@@ -28,6 +28,7 @@
            <span onclick="player.pause()">pause</span>
            <span onclick="player.stop()">stop</span>
            <span onclick="player.toggle()">toggle</span>
+           <span onclick="player.fullscreen.toggle()">fullscreen</span>
        </div>
 
         <div id="soundTracks" class="grd-1 txt-cnr">
@@ -85,6 +86,9 @@
 
             // add tracking
             player.addPlugin(SplitPlayerPlugins.Analytics);
+            player.addPlugin(SplitPlayerPlugins.Fullscreen, {
+                area: 'body'
+            });
 
             playerSoundManager.extend(SplitPlayerPlugins.SoundTrack, {
                 area: '#soundTracks'
