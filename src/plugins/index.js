@@ -8,8 +8,10 @@ var SplitPlayerPlugins = {
     TimeDisplay: require('./time/display.js'),
     SoundManager: require('./sound/manager.js'),
     SoundTrack: require('./sound/track.js'),
+    Remember: require('./remember.js'),
     Analytics: require('./analytics.js'),
-    Fullscreen: require('./fullscreen.js')
+    Fullscreen: require('./fullscreen.js'),
+    CrossTabs: require('./crosstabs.js')
 };
 
 if (typeof window !== 'undefined') {

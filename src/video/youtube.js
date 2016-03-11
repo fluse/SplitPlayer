@@ -16,6 +16,7 @@ module.exports = class YoutubeVideo {
 
         this.settings = extend({
             videoId: null,
+            videoUrl: null,
             startSeconds: 0,
             isHidden: false,
             isMuted: false,

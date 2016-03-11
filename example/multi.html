@@ -66,12 +66,12 @@
                 startSeconds: 30,
                 hoster: 'youtube',
                 isMuted: true
-            },{
+            }/*,{
                 videoUrl: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
                 startSeconds: 5,
                 hoster: 'native',
                 isMuted: true
-            }];
+            }*/];
 
             var player = new SplitPlayer({
                 area: '#videoPlayer',
@@ -86,6 +86,8 @@
 
             // add tracking
             player.addPlugin(SplitPlayerPlugins.Analytics);
+            player.addPlugin(SplitPlayerPlugins.CrossTabs);
+            player.addPlugin(SplitPlayerPlugins.Remember);
             player.addPlugin(SplitPlayerPlugins.Fullscreen, {
                 area: 'body'
             });

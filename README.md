@@ -3,18 +3,45 @@
 [![](http://player.splitplay.tv/dist/logo.png)](http://player.splitplay.tv)
 
 [![npm package](https://nodei.co/npm/splitplayer.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/splitplayer/)
+[![NPM](https://nodei.co/npm-dl/splitplayer.png?months=6&height=3)](https://www.npmjs.com/package/splitplayer)
 
 SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync. Let Videos Start at different seconds, to get them synchronous.
 
-
 ## Features
-- Multi Videos
-- Analytics Support
-- Sound Selection
-- Sound regulation
-- Timepicker on timeline select set new time to each video
-- Hide or show specific videos
-- Fullscreen Mode
+
+### Multi Videos
+We are the new generation, that can't live with one thing. We want to do or see more than one thing simultaneously.
+Create more than one video instance and control them all together within one control interface.
+
+### Start Time
+So now you know thats possible to create more than one video, but where is the sense behind them?
+Maybe you want to add more than one perspective from one game or scene. Use the start time to bring all videos in sync.
+
+### Analytics
+I saw it in your eyes. You want to know, what your page visitors do with your player.
+This Plugin will push play, pause, stop, volume events, automatically to google analytics.
+
+### SoundTrack Selection
+Many Videos many sounds. But you want only one of them?
+Select a soundtrack initial or use this plugin to select the sound by a list.
+
+### Volume
+One slider to rule them all! control the volume of all videos inside on player
+
+### TimePicker
+Jump forward, go backward, select the part you want to watch.
+Use this plugin to select the time on a line, that keeps videos in sync.
+
+### Fullscreen
+You can use it to set a custom area, to bring all videos together in fullscreen. Such delicacy. Yumyum.
+
+### CrossTab Control
+Yes multi tab browsing is a nice thing, but you have open 2-3 player instances in different tabs?
+No matter! This plugin will pause all other players in there tabs and set overall volume.
+
+### Remembering Time
+You now nana the rapper? I remember the time, the time that we had?
+If you in hurry and can't finish watching videos. No problem! This plugin remember the played time, saves it into storage and use it after reopening the videos.
 
 ## Supported Hoster
 - Youtube
@@ -23,10 +50,12 @@ SplitPlayer is a high flexible extendable Video Player, that keeps multiple yout
 ## Planned
 - Synchronize Interface
 - Playlists
-- Auto Sound Select if Video ended
+- Hide or show specific videos
+- Auto Sound Select if Video ends
 - Picture in Picture Mode
-- controle videos cross tabs
 - Vimeo
+- remote browser sync
+- crosstab volume regulation
 
 Productive integration on http://splitplay.tv
 

@@ -52,11 +52,8 @@ class SplitPlayer {
     mount() {
         this.create();
 
-        for (let Plugin of this.plugins) {
-            if (Plugin.mount) {
-                Plugin.mount();
-            }
-        }
+        // hook mount for plugins
+        this.hook('mount');
     }
 
     create() {
@@ -156,11 +153,8 @@ class SplitPlayer {
 
         this.duration = 0;
 
-        for (let Plugin of this.plugins) {
-            if (Plugin.destroy) {
-                Plugin.destroy();
-            }
-        }
+        // hook destroy for plugins
+        this.hook('destroy');
 
         this.$dom.remove();
     }
@@ -234,25 +228,15 @@ class SplitPlayer {
         if (this.readyCount !== this.videos.length) {
             return console.info('videos not ready yet');
         }
-        this.play();
-        this.pause();
         this.playerStateIs = playerState.ready;
-
+        this.stop();
         // hook onReady for plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onReady) {
-                Plugin.onReady();
-            }
-        }
+        this.hook('onReady');
     }
 
     onUpdate() {
-        // hook all plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onUpdate) {
-                Plugin.onUpdate();
-            }
-        }
+        // hook onUpdate for plugins
+        this.hook('onUpdate');
     }
 
     changeState(state) {
@@ -277,7 +261,18 @@ class SplitPlayer {
         return Math.max(...times);
     }
 
+    hook(name, value = null) {
+        for (let Plugin of this.plugins) {
+            if (Plugin[name]) {
+                Plugin[name](value);
+            }
+        }
+    }
+
     play() {
+
+        // hook prePlay for plugins
+        this.hook('prePlay');
 
         // start ticker
         this.ticker.start();
@@ -288,12 +283,8 @@ class SplitPlayer {
             }
         }
 
-        // hook onPlay for plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onPlay) {
-                Plugin.onPlay();
-            }
-        }
+        // hook prePlay for plugins
+        this.hook('onPlay');
 
         this.playerStateIs = playerState.playing;
 
@@ -315,12 +306,8 @@ class SplitPlayer {
             video.pause();
         }
 
-        // hook all plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onPause) {
-                Plugin.onPause();
-            }
-        }
+        // hook onPause for plugins
+        this.hook('onPause');
 
         this.playerStateIs = playerState.pause;
 
@@ -354,12 +341,8 @@ class SplitPlayer {
             }
         }
 
-        // hook all plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onStop) {
-                Plugin.onStop();
-            }
-        }
+        // hook onStop for plugins
+        this.hook('onStop');
 
         this.playerStateIs = playerState.unstarted;
 
@@ -378,12 +361,8 @@ class SplitPlayer {
             video.mute();
         }
 
-        // hook all plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onMute) {
-                Plugin.onMute();
-            }
-        }
+        // hook onMute for plugins
+        this.hook('onMute');
     }
 
     volumeTo(percentage) {
@@ -402,12 +381,8 @@ class SplitPlayer {
             video.volumeTo(percentage);
         }
 
-        // hook all plugins
-        for (let Plugin of this.plugins) {
-            if (Plugin.onVolumeChange) {
-                Plugin.onVolumeChange(percentage);
-            }
-        }
+        // hook onVolumeChange for plugins
+        this.hook('onVolumeChange', percentage);
 
         return this;
     }
