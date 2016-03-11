@@ -1,4 +1,4 @@
-# SplitPlayer [![NPM version]]
+# SplitPlayer
 
 [![](http://player.splitplay.tv/dist/logo.png)](http://player.splitplay.tv)
 
