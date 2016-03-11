@@ -1,17 +1,17 @@
-# SplitPlayer
+# SplitPlayer [![NPM version][npm-img]][npm-url]
 
 [![](http://player.splitplay.tv/dist/logo.png)](http://player.splitplay.tv)
 
 [![npm package](https://nodei.co/npm/splitplayer.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/splitplayer/)
 [![NPM](https://nodei.co/npm-dl/splitplayer.png?months=6&height=3)](https://www.npmjs.com/package/splitplayer)
 
-SplitPlayer is a high flexible extendable Video Player, that keeps multiple youtube videos in sync. Let Videos Start at different seconds, to get them synchronous.
+SplitPlayer is a highly flexible extendable Video Player, that keeps multiple videos in sync. Let Videos Start at different seconds, to get them synchronous. Have a look at players features:
 
 ## Features
 
 ### Multi Videos
-We are the new generation, that can't live with one thing. We want to do or see more than one thing simultaneously.
-Create more than one video instance and control them all together within one control interface.
+We are the new generation, that can't live with only one thing. We want to do or see more than one thing simultaneously.
+Create more than one video instance and control them all together within one interface.
 
 ### Start Time
 So now you know thats possible to create more than one video, but where is the sense behind them?
@@ -56,6 +56,7 @@ If you in hurry and can't finish watching videos. No problem! This plugin rememb
 - Vimeo
 - remote browser sync
 - crosstab volume regulation
+- TimeLine Commentary
 
 Productive integration on http://splitplay.tv
 
