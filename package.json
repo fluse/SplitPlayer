@@ -1,6 +1,6 @@
 {
   "name": "splitplayer",
-  "author": "Holger Schauf",
+  "author": "Holger Schauf <holger.schauf@gmail.com>",
   "website": "http://player.splitplay.tv",
   "private": false,
   "version": "1.2.2",
@@ -11,13 +11,20 @@
   "keywords": [
     "youtube",
     "player",
-    "html 5 video",
-    "vimeo",
+    "video",
+    "html 5",
     "crosstab",
     "picture in picture",
     "multi video",
-    "video timepick",
-    "video sound controle"
+    "multiple",
+    "simultaneously",
+    "player tracking",
+    "fullscreen",
+    "video timepicker",
+    "video sound control",
+    "localstorage",
+    "javascript",
+    "es6"
   ],
   "repository": {
     "type": "git",

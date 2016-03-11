@@ -1,11 +1,11 @@
-# SplitPlayer [![NPM version][npm-img]][npm-url]
+# SplitPlayer [![NPM version]]
 
 [![](http://player.splitplay.tv/dist/logo.png)](http://player.splitplay.tv)
 
 [![npm package](https://nodei.co/npm/splitplayer.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/splitplayer/)
 [![NPM](https://nodei.co/npm-dl/splitplayer.png?months=6&height=3)](https://www.npmjs.com/package/splitplayer)
 
-SplitPlayer is a highly flexible extendable Video Player, that keeps multiple videos in sync. Let Videos Start at different seconds, to get them synchronous. Have a look at players features:
+> SplitPlayer is a highly flexible extendable Video Player, that keeps multiple videos in sync. Let Videos Start at different seconds, to get them synchronous. Have a look at players features:
 
 ## Features
 
