@@ -1,18 +1,30 @@
 {
   "name": "splitplayer",
-  "author": "Holger Schauf",
+  "author": "Holger Schauf <holger.schauf@gmail.com>",
   "website": "http://player.splitplay.tv",
   "private": false,
-  "version": "1.2.0",
+  "version": "1.2.2",
   "engines": {
     "node": "4.1.0"
   },
-  "description": "SplitPlayer - highly flexible extendable video player",
+  "description": "SplitPlayer - highly flexible extendable multi video player",
   "keywords": [
     "youtube",
     "player",
-    "video timepick",
-    "video sound controle"
+    "video",
+    "html 5",
+    "crosstab",
+    "picture in picture",
+    "multi video",
+    "multiple",
+    "simultaneously",
+    "player tracking",
+    "fullscreen",
+    "video timepicker",
+    "video sound control",
+    "localstorage",
+    "javascript",
+    "es6"
   ],
   "repository": {
     "type": "git",
@@ -20,6 +32,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "crosstab": "^0.2.12",
     "domtastic": "^0.12.0",
     "express": "^4.13.3",
     "extend": "^3.0.0",

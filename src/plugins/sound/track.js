@@ -46,7 +46,7 @@ SplitPlayerSoundTrack.prototype = {
         for (var i = 0; i < activeVideos.length; i++) {
 
             var video = player.getVideo(activeVideos[i]);
-
+            console.log(video);
             if (video !== false) {
                 video.unMute();
             }

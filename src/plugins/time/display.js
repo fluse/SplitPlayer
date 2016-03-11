@@ -1,40 +1,36 @@
-/* globals $ */
+'use strict';
 
 var extend = require('extend');
 var $ = require('domtastic');
 
-'use strict';
+module.exports = class SplitPlayerTimeDisplay {
+    constructor (timeManager, settings) {
+        this.timeManager = timeManager;
+        this.$display = null;
+        this.$duration = null;
+        this.$current = null;
 
-var SplitPlayerTimeDisplay = function (timeManager, settings) {
-    this.timeManager = timeManager;
-    this.$display = null;
-    this.$duration = null;
-    this.$current = null;
+        // extend settings
+        this.settings = extend({}, this.timeManager.settings, {
+            area: null,
+            template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
+        }, settings);
 
-    // extend settings
-    this.settings = extend({}, this.timeManager.settings, {
-        area: null,
-        template: '<i class="time-display"><time class="current">&nbsp;</time><time class="duration">&nbsp;</time></i>'
-    }, settings);
-
-    this.mount();
-    return this;
-};
-
-SplitPlayerTimeDisplay.prototype = {
+        this.mount();
+    }
 
     mount() {
         this._render();
-    },
+    }
 
     onReady() {
         this.onsetTimeTo(this.timeManager.getData());
-    },
+    }
 
     onsetTimeTo(data) {
         this.$duration.html(data.durationFormatted);
         this.$current.html(data.playedTimeFormatted);
-    },
+    }
 
     _render() {
         if (this.settings.area === null) {
@@ -46,12 +42,10 @@ SplitPlayerTimeDisplay.prototype = {
 
         this.$duration = this.$display.find('.duration');
         this.$current = this.$display.find('.current');
-    },
+    }
 
     destroy() {
         this.$display.remove();
     }
 
 };
-
-module.exports = SplitPlayerTimeDisplay;

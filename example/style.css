@@ -3,6 +3,7 @@ body {
     padding: 0;
     overflow-x: hidden;
     font-family: Arial, sans-serif;
+    background-color: #191A1B;
 }
 
 #SplitPlayer {
@@ -19,19 +20,25 @@ body {
     background: #000;
 }
 
+#SplitPlayer video {
+    width: 100%;
+}
+
 #timeline {
     width: 100%;
     position: relative;
     height: 20px;
-    background: #efefef;
+    background: #48596B;
 }
 
 #timeline i {
+    color: #fff;
+    font-style: normal;
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
-    background: #e8a040;
+    background: #4A90E2;
 }
 
 #timeline .preview-line {
@@ -40,7 +47,7 @@ body {
     top: 0;
     left: 0;
     bottom: 0;
-    background: #f7c27a;
+    background: #546D8B;
 }
 
 #timeline:hover .preview-line {
@@ -50,8 +57,9 @@ body {
 #timeline .preview-line time {
     position: absolute;
     right: 0;
-    bottom: 0;
-
+    bottom: 100%;
+    margin-bottom: 1px;
+    background-color: #546D8B
 }
 
 #splitPlayerController, .settings {

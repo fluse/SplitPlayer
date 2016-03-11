@@ -1,43 +1,41 @@
-var extend = require('extend');
-
 'use strict';
 
-var SplitPlayerAnalytics = function (player, settings) {
-    this.player = player;
+var extend = require('extend');
 
-    this.$volume = null;
-    // extend settings
-    this.settings = extend({}, this.player.settings, {
-    }, settings || {});
+module.exports = class SplitPlayerAnalytics {
 
-    return this;
-};
+    constructor  (player, settings) {
+        this.player = player;
 
-SplitPlayerAnalytics.prototype = {
+        this.$volume = null;
+        // extend settings
+        this.settings = extend({}, this.player.settings, {
+        }, settings || {});
+    }
 
     onPlay() {
         this.track('play');
-    },
+    }
 
     onPause() {
         this.track('pause');
-    },
+    }
 
     onStop() {
         this.track('stop');
-    },
+    }
 
     onTimeTo(timeData) {
         this.track('timeTo', timeData.playedTime);
-    },
+    }
 
     onMute() {
         this.track('mute');
-    },
+    }
 
     onVolumeChange(percentage) {
         this.track('volumeTo', percentage);
-    },
+    }
 
     track(label, value) {
         if (typeof _trackEvent !== 'undefined') {
@@ -46,4 +44,3 @@ SplitPlayerAnalytics.prototype = {
     }
 
 };
-module.exports = SplitPlayerAnalytics;

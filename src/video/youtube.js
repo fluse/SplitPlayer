@@ -6,25 +6,25 @@ var $ = require('domtastic');
 
 const playerState = require('./../constants');
 
-var YoutubeVideo = function (player, settings) {
+module.exports = class YoutubeVideo {
 
-    this.player = player;
-    this.videoPlayer = null;
+    constructor(player, settings) {
 
-    this.settings = extend({
-        videoId: null,
-        startSeconds: 0,
-        isMuted: false
-    }, settings);
+        this.loadingDependencies = false;
+        this.player = player;
+        this.videoPlayer = null;
 
-    this.isMuted = this.settings.isMuted;
+        this.settings = extend({
+            videoId: null,
+            videoUrl: null,
+            startSeconds: 0,
+            isHidden: false,
+            isMuted: false,
+            controls: 1
+        }, settings);
 
-    return this;
-};
-
-YoutubeVideo.prototype = {
-
-    loadingDependencies: false,
+        this.isMuted = this.settings.isMuted;
+    }
 
     load(callback) {
 
@@ -37,12 +37,12 @@ YoutubeVideo.prototype = {
         getScript('//youtube.com/iframe_api', function () {
             window.onYouTubeIframeAPIReady = callback;
         });
-    },
+    }
 
     mount() {
         this._render();
         this.create();
-    },
+    }
 
     create() {
 
@@ -52,7 +52,7 @@ YoutubeVideo.prototype = {
             videoId: this.settings.videoId,
             startSeconds: this.settings.startSeconds,
             playerVars: {
-                'controls': 1
+                controls: this.settings.controls
             },
             events: {
                 onReady: this.onReady.bind(this),
@@ -60,16 +60,17 @@ YoutubeVideo.prototype = {
                 onError: this.onError.bind(this)
             }
         });
-    },
+    }
 
     onReady() {
         this.setPlayerDuration();
+
         if (this.settings.isMuted) {
             this.mute();
         }
         this.timeTo(0);
         this.player.onReady();
-    },
+    }
 
     onError(err) {
 
@@ -79,7 +80,7 @@ YoutubeVideo.prototype = {
         }
 
         this.noVideo();
-    },
+    }
 
     onStateChange(event) {
 
@@ -96,27 +97,46 @@ YoutubeVideo.prototype = {
         }
 
         console.info('state %s not fetched', event.data);
-    },
+    }
+
+    hide() {
+        if (this.settings.isHidden) {
+            return false;
+        }
+
+        $('#' + this.settings.videoId).hide();
+        this.settings.isHidden = true;
+    }
+
+    show() {
+        if (!this.settings.isHidden) {
+            return false;
+        }
+
+        $('#' + this.settings.videoId).show();
+
+        this.settings.isHidden = false;
+    }
 
     getPlayerState() {
         return this.videoPlayer.getPlayerState();
-    },
+    }
 
     remove() {
         this.videoPlayer.destroy();
-    },
+    }
 
     timeTo(time) {
+
+        time = (time + this.settings.startSeconds);
 
         if (time >= this.getDuration()) {
             this.videoPlayer.stopVideo();
             return console.info('time for %s out of range', this.settings.videoId);
         }
 
-        time = (time + this.settings.startSeconds);
-
         this.videoPlayer.seekTo(time);
-    },
+    }
 
     volumeTo(percentage) {
         if (this.isMuted) {
@@ -125,7 +145,7 @@ YoutubeVideo.prototype = {
 
         this.videoPlayer.setVolume(percentage);
         return true;
-    },
+    }
 
     mute() {
         this.videoPlayer.mute();
@@ -133,7 +153,7 @@ YoutubeVideo.prototype = {
         this.settings.isMuted = this.isMuted;
 
         return true;
-    },
+    }
 
     unMute() {
         this.isMuted = false;
@@ -142,25 +162,25 @@ YoutubeVideo.prototype = {
         this.volumeTo(this.player.settings.volume);
 
         return true;
-    },
+    }
 
     play() {
         this.videoPlayer.playVideo();
-    },
+    }
 
     pause() {
         this.videoPlayer.pauseVideo();
-    },
+    }
 
     stop() {
         this.timeTo(0);
         this.pause();
-    },
+    }
 
     getDuration() {
         var duration = (this.videoPlayer.getDuration() || 0);
         return (duration - this.settings.startSeconds);
-    },
+    }
 
     setPlayerDuration() {
         let _duration = this.getDuration();
@@ -169,20 +189,20 @@ YoutubeVideo.prototype = {
             this.player.duration = _duration;
             this.player.getPlayedTime = this.getPlayedTime.bind(this);
         }
-    },
+    }
 
     getPlayedTime() {
         return this.videoPlayer.getCurrentTime() - this.settings.startSeconds;
-    },
+    }
 
     _render() {
         $('#SplitPlayer').append('<div id="' + this.settings.videoId + '"><div id="replacer' + this.settings.videoId + '"><div></div>');
-    },
+    }
 
     noVideo() {
         this.player.removeVideo(this.settings.videoId);
         $('#' + this.settings.videoId).html('<div class="no-video"></div>');
-    },
+    }
 
     destroy() {
         // remove youtube video iframe
@@ -191,6 +211,4 @@ YoutubeVideo.prototype = {
         return true;
     }
 
-};
-
-module.exports = YoutubeVideo;
+}
