@@ -1,5 +1,7 @@
 # SplitPlayer
 
+[![Donate](https://img.shields.io/badge/donate-%20%E2%9D%A4%20-green.svg)](https://www.paypal.me/schauf)
+
 [![](http://player.splitplay.tv/dist/logo.png)](http://player.splitplay.tv)
 
 [![npm package](https://nodei.co/npm/splitplayer.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/splitplayer/)
