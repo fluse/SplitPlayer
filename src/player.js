@@ -5,6 +5,7 @@ var $ = require('domtastic');
 var extend = require('extend');
 var _ = require('underscore');
 
+
 var Ticker = require('./helper/ticker');
 var SplitPlayerVideo = window.SplitPlayerVideo = require('./video/');
 var SplitPlayerPlugins = require('./plugins/');
